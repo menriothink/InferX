@@ -1,0 +1,88 @@
+# ===============================
+# macOS
+# ===============================
+.DS_Store
+.AppleDouble
+.LSOverride
+Icon?
+._*
+.Spotlight-V100
+.Trashes
+*.swp
+*.lock
+
+# ===============================
+# Xcode / Swift
+# ===============================
+build/
+DerivedData/
+*.xcuserstate
+*.xcuserdata/
+*.xccheckout
+*.xcscmblueprint
+*.xcodeproj/project.xcworkspace/
+*.xcodeproj/xcuserdata/
+*.xcworkspace/xcuserdata/
+
+# ===============================
+# Swift Package Manager
+# ===============================
+.swiftpm/
+.build/
+Packages/
+Package.resolved
+
+# ===============================
+# Playgrounds
+# ===============================
+timeline.xctimeline
+playground.xcworkspace
+
+# ===============================
+# CocoaPods
+# ===============================
+Pods/
+Podfile.lock
+
+# ===============================
+# Carthage
+# ===============================
+Carthage/Build/
+
+# ===============================
+# SwiftLint / Logs
+# ===============================
+.swiftlint.yml
+*.log
+*.trace
+*.profdata
+*.coverage
+*.gcno
+
+# ===============================
+# User-specific
+# ===============================
+*.moved-aside
+*.xcuserstate
+*.xcscmblueprint
+*.xccheckout
+*.swp
+*~.nib
+*~.storyboard
+.idea/
+.vscode/
+
+# ===============================
+# App-specific
+# ===============================
+*.key
+*.pem
+*.crt
+*.p12
+*.mobileprovision
+
+# ===============================
+# SwiftData / MLX / Generated
+# ===============================
+*.sqlite*
+mlx-generated/
