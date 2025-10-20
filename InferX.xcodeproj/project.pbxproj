@@ -1,0 +1,869 @@
+// !$*UTF8*$!
+{
+	archiveVersion = 1;
+	classes = {
+	};
+	objectVersion = 77;
+	objects = {
+
+/* Begin PBXBuildFile section */
+		262799362D9E0B6F002CB8A4 /* SwiftUIIntrospect in Frameworks */ = {isa = PBXBuildFile; productRef = 262799352D9E0B6F002CB8A4 /* SwiftUIIntrospect */; };
+		2627993A2D9E0B6F002CB8A4 /* SwiftUIIntrospect-Static in Frameworks */ = {isa = PBXBuildFile; productRef = 262799392D9E0B6F002CB8A4 /* SwiftUIIntrospect-Static */; };
+		262799992DA2CCE5002CB8A4 /* Splash in Frameworks */ = {isa = PBXBuildFile; productRef = 262799982DA2CCE5002CB8A4 /* Splash */; };
+		262799A22DA2D699002CB8A4 /* SwiftUIX in Frameworks */ = {isa = PBXBuildFile; productRef = 262799A12DA2D699002CB8A4 /* SwiftUIX */; };
+		268E8A892EA69C5F00D41C59 /* MarkdownUI in Frameworks */ = {isa = PBXBuildFile; productRef = 268E8A882EA69C5F00D41C59 /* MarkdownUI */; };
+		268E8CF72EA69D3300D41C59 /* Defaults in Frameworks */ = {isa = PBXBuildFile; productRef = 268E8CF62EA69D3300D41C59 /* Defaults */; };
+		268E8CF92EA69D3300D41C59 /* DefaultsMacros in Frameworks */ = {isa = PBXBuildFile; productRef = 268E8CF82EA69D3300D41C59 /* DefaultsMacros */; };
+		268E8CFC2EA69D9100D41C59 /* AlertToast in Frameworks */ = {isa = PBXBuildFile; productRef = 268E8CFB2EA69D9100D41C59 /* AlertToast */; };
+		268E8CFF2EA69DC700D41C59 /* Highlightr in Frameworks */ = {isa = PBXBuildFile; productRef = 268E8CFE2EA69DC700D41C59 /* Highlightr */; };
+		268E8D022EA69E1000D41C59 /* AnyCodable in Frameworks */ = {isa = PBXBuildFile; productRef = 268E8D012EA69E1000D41C59 /* AnyCodable */; };
+		268E8D052EA69E9C00D41C59 /* Luminare in Frameworks */ = {isa = PBXBuildFile; productRef = 268E8D042EA69E9C00D41C59 /* Luminare */; };
+		268E8D082EA69F4E00D41C59 /* Alamofire in Frameworks */ = {isa = PBXBuildFile; productRef = 268E8D072EA69F4E00D41C59 /* Alamofire */; };
+		26A32C252E3272D80053B454 /* AsyncAlgorithms in Frameworks */ = {isa = PBXBuildFile; productRef = 26A32C242E3272D80053B454 /* AsyncAlgorithms */; };
+		26ACD1CA2E1EA9C700C5D096 /* Semaphore in Frameworks */ = {isa = PBXBuildFile; productRef = 26ACD1C92E1EA9C700C5D096 /* Semaphore */; };
+		26ACD26C2E1EAE8600C5D096 /* ArgumentParser in Frameworks */ = {isa = PBXBuildFile; productRef = 26ACD26B2E1EAE8600C5D096 /* ArgumentParser */; };
+		26D48DAB2EA6865A00857B41 /* MLXEmbedders in Frameworks */ = {isa = PBXBuildFile; productRef = 26D48DAA2EA6865A00857B41 /* MLXEmbedders */; };
+		26D48DAD2EA6865A00857B41 /* MLXLLM in Frameworks */ = {isa = PBXBuildFile; productRef = 26D48DAC2EA6865A00857B41 /* MLXLLM */; };
+		26D48DAF2EA6865A00857B41 /* MLXLMCommon in Frameworks */ = {isa = PBXBuildFile; productRef = 26D48DAE2EA6865A00857B41 /* MLXLMCommon */; };
+		26D48DB12EA6865A00857B41 /* MLXMNIST in Frameworks */ = {isa = PBXBuildFile; productRef = 26D48DB02EA6865A00857B41 /* MLXMNIST */; };
+		26D48DB32EA6865A00857B41 /* MLXVLM in Frameworks */ = {isa = PBXBuildFile; productRef = 26D48DB22EA6865A00857B41 /* MLXVLM */; };
+		26E091F42DDE01690007267A /* Markdown in Frameworks */ = {isa = PBXBuildFile; productRef = 26E091F32DDE01690007267A /* Markdown */; };
+		26F879942DFDD77D002CB8FB /* SwiftSoup in Frameworks */ = {isa = PBXBuildFile; productRef = 26F879932DFDD77D002CB8FB /* SwiftSoup */; };
+		26FFEC422DF3004A000DFB9E /* SwiftMath in Frameworks */ = {isa = PBXBuildFile; productRef = 26FFEC412DF3004A000DFB9E /* SwiftMath */; };
+/* End PBXBuildFile section */
+
+/* Begin PBXContainerItemProxy section */
+		265D77782DB9B0BA009422B2 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 26FE08B02D79D07100438583 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 26FE08B72D79D07100438583;
+			remoteInfo = InferX;
+		};
+/* End PBXContainerItemProxy section */
+
+/* Begin PBXCopyFilesBuildPhase section */
+		262799632D9FEA17002CB8A4 /* Embed Frameworks */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = "";
+			dstSubfolderSpec = 10;
+			files = (
+			);
+			name = "Embed Frameworks";
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXCopyFilesBuildPhase section */
+
+/* Begin PBXFileReference section */
+		265D77742DB9B0BA009422B2 /* InferXTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = InferXTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		26FE08B82D79D07100438583 /* InferX.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = InferX.app; sourceTree = BUILT_PRODUCTS_DIR; };
+/* End PBXFileReference section */
+
+/* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
+		265D77832DBB0D00009422B2 /* Exceptions for "InferXTests" folder in "InferXTests" target */ = {
+			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
+			membershipExceptions = (
+				OllamaServiceTests.swift,
+			);
+			target = 265D77732DB9B0BA009422B2 /* InferXTests */;
+		};
+/* End PBXFileSystemSynchronizedBuildFileExceptionSet section */
+
+/* Begin PBXFileSystemSynchronizedRootGroup section */
+		265D77752DB9B0BA009422B2 /* InferXTests */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			exceptions = (
+				265D77832DBB0D00009422B2 /* Exceptions for "InferXTests" folder in "InferXTests" target */,
+			);
+			path = InferXTests;
+			sourceTree = "<group>";
+		};
+		26FE08BA2D79D07100438583 /* InferX */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			path = InferX;
+			sourceTree = "<group>";
+		};
+/* End PBXFileSystemSynchronizedRootGroup section */
+
+/* Begin PBXFrameworksBuildPhase section */
+		265D77712DB9B0BA009422B2 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		26FE08B52D79D07100438583 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				26D48DB32EA6865A00857B41 /* MLXVLM in Frameworks */,
+				268E8D082EA69F4E00D41C59 /* Alamofire in Frameworks */,
+				2627993A2D9E0B6F002CB8A4 /* SwiftUIIntrospect-Static in Frameworks */,
+				262799A22DA2D699002CB8A4 /* SwiftUIX in Frameworks */,
+				268E8A892EA69C5F00D41C59 /* MarkdownUI in Frameworks */,
+				268E8D022EA69E1000D41C59 /* AnyCodable in Frameworks */,
+				26ACD26C2E1EAE8600C5D096 /* ArgumentParser in Frameworks */,
+				262799992DA2CCE5002CB8A4 /* Splash in Frameworks */,
+				268E8CF72EA69D3300D41C59 /* Defaults in Frameworks */,
+				268E8CF92EA69D3300D41C59 /* DefaultsMacros in Frameworks */,
+				268E8CFF2EA69DC700D41C59 /* Highlightr in Frameworks */,
+				26FFEC422DF3004A000DFB9E /* SwiftMath in Frameworks */,
+				262799362D9E0B6F002CB8A4 /* SwiftUIIntrospect in Frameworks */,
+				26D48DB12EA6865A00857B41 /* MLXMNIST in Frameworks */,
+				268E8D052EA69E9C00D41C59 /* Luminare in Frameworks */,
+				26D48DAF2EA6865A00857B41 /* MLXLMCommon in Frameworks */,
+				26ACD1CA2E1EA9C700C5D096 /* Semaphore in Frameworks */,
+				268E8CFC2EA69D9100D41C59 /* AlertToast in Frameworks */,
+				26E091F42DDE01690007267A /* Markdown in Frameworks */,
+				26D48DAB2EA6865A00857B41 /* MLXEmbedders in Frameworks */,
+				26F879942DFDD77D002CB8FB /* SwiftSoup in Frameworks */,
+				26D48DAD2EA6865A00857B41 /* MLXLLM in Frameworks */,
+				26A32C252E3272D80053B454 /* AsyncAlgorithms in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXFrameworksBuildPhase section */
+
+/* Begin PBXGroup section */
+		26E091F22DDE01690007267A /* Frameworks */ = {
+			isa = PBXGroup;
+			children = (
+			);
+			name = Frameworks;
+			sourceTree = "<group>";
+		};
+		26FE08AF2D79D07100438583 = {
+			isa = PBXGroup;
+			children = (
+				26FE08BA2D79D07100438583 /* InferX */,
+				265D77752DB9B0BA009422B2 /* InferXTests */,
+				26E091F22DDE01690007267A /* Frameworks */,
+				26FE08B92D79D07100438583 /* Products */,
+			);
+			sourceTree = "<group>";
+		};
+		26FE08B92D79D07100438583 /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				26FE08B82D79D07100438583 /* InferX.app */,
+				265D77742DB9B0BA009422B2 /* InferXTests.xctest */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+/* End PBXGroup section */
+
+/* Begin PBXNativeTarget section */
+		265D77732DB9B0BA009422B2 /* InferXTests */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 265D777A2DB9B0BA009422B2 /* Build configuration list for PBXNativeTarget "InferXTests" */;
+			buildPhases = (
+				265D77702DB9B0BA009422B2 /* Sources */,
+				265D77712DB9B0BA009422B2 /* Frameworks */,
+				265D77722DB9B0BA009422B2 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				265D77792DB9B0BA009422B2 /* PBXTargetDependency */,
+			);
+			fileSystemSynchronizedGroups = (
+				265D77752DB9B0BA009422B2 /* InferXTests */,
+			);
+			name = InferXTests;
+			packageProductDependencies = (
+			);
+			productName = InferXTests;
+			productReference = 265D77742DB9B0BA009422B2 /* InferXTests.xctest */;
+			productType = "com.apple.product-type.bundle.unit-test";
+		};
+		26FE08B72D79D07100438583 /* InferX */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 26FE08C92D79D07200438583 /* Build configuration list for PBXNativeTarget "InferX" */;
+			buildPhases = (
+				26FE08B42D79D07100438583 /* Sources */,
+				26FE08B52D79D07100438583 /* Frameworks */,
+				26FE08B62D79D07100438583 /* Resources */,
+				262799632D9FEA17002CB8A4 /* Embed Frameworks */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			fileSystemSynchronizedGroups = (
+				26FE08BA2D79D07100438583 /* InferX */,
+			);
+			name = InferX;
+			packageProductDependencies = (
+				262799352D9E0B6F002CB8A4 /* SwiftUIIntrospect */,
+				262799392D9E0B6F002CB8A4 /* SwiftUIIntrospect-Static */,
+				262799982DA2CCE5002CB8A4 /* Splash */,
+				262799A12DA2D699002CB8A4 /* SwiftUIX */,
+				26E091F32DDE01690007267A /* Markdown */,
+				26FFEC412DF3004A000DFB9E /* SwiftMath */,
+				26F879932DFDD77D002CB8FB /* SwiftSoup */,
+				26ACD1C92E1EA9C700C5D096 /* Semaphore */,
+				26ACD26B2E1EAE8600C5D096 /* ArgumentParser */,
+				26A32C242E3272D80053B454 /* AsyncAlgorithms */,
+				26D48DAA2EA6865A00857B41 /* MLXEmbedders */,
+				26D48DAC2EA6865A00857B41 /* MLXLLM */,
+				26D48DAE2EA6865A00857B41 /* MLXLMCommon */,
+				26D48DB02EA6865A00857B41 /* MLXMNIST */,
+				26D48DB22EA6865A00857B41 /* MLXVLM */,
+				268E8A882EA69C5F00D41C59 /* MarkdownUI */,
+				268E8CF62EA69D3300D41C59 /* Defaults */,
+				268E8CF82EA69D3300D41C59 /* DefaultsMacros */,
+				268E8CFB2EA69D9100D41C59 /* AlertToast */,
+				268E8CFE2EA69DC700D41C59 /* Highlightr */,
+				268E8D012EA69E1000D41C59 /* AnyCodable */,
+				268E8D042EA69E9C00D41C59 /* Luminare */,
+				268E8D072EA69F4E00D41C59 /* Alamofire */,
+			);
+			productName = InferX;
+			productReference = 26FE08B82D79D07100438583 /* InferX.app */;
+			productType = "com.apple.product-type.application";
+		};
+/* End PBXNativeTarget section */
+
+/* Begin PBXProject section */
+		26FE08B02D79D07100438583 /* Project object */ = {
+			isa = PBXProject;
+			attributes = {
+				BuildIndependentTargetsInParallel = 1;
+				LastSwiftUpdateCheck = 1630;
+				LastUpgradeCheck = 2600;
+				TargetAttributes = {
+					265D77732DB9B0BA009422B2 = {
+						CreatedOnToolsVersion = 16.3;
+						TestTargetID = 26FE08B72D79D07100438583;
+					};
+					26FE08B72D79D07100438583 = {
+						CreatedOnToolsVersion = 16.2;
+					};
+				};
+			};
+			buildConfigurationList = 26FE08B32D79D07100438583 /* Build configuration list for PBXProject "InferX" */;
+			developmentRegion = en;
+			hasScannedForEncodings = 0;
+			knownRegions = (
+				en,
+				Base,
+			);
+			mainGroup = 26FE08AF2D79D07100438583;
+			minimizedProjectReferenceProxies = 1;
+			packageReferences = (
+				262799342D9E0B6F002CB8A4 /* XCRemoteSwiftPackageReference "swiftui-introspect" */,
+				262799972DA2CCE5002CB8A4 /* XCRemoteSwiftPackageReference "Splash" */,
+				262799A02DA2D699002CB8A4 /* XCRemoteSwiftPackageReference "SwiftUIX" */,
+				26E091F12DDE00E60007267A /* XCRemoteSwiftPackageReference "swift-markdown" */,
+				26F879922DFDD77D002CB8FB /* XCRemoteSwiftPackageReference "SwiftSoup" */,
+				26ACD1C82E1EA9C700C5D096 /* XCRemoteSwiftPackageReference "Semaphore" */,
+				26ACD26A2E1EAE8600C5D096 /* XCRemoteSwiftPackageReference "swift-argument-parser" */,
+				26A32C232E3272D80053B454 /* XCRemoteSwiftPackageReference "swift-async-algorithms" */,
+				26D48DA92EA6865A00857B41 /* XCRemoteSwiftPackageReference "mlx-swift-examples" */,
+				268E8A872EA69C5F00D41C59 /* XCRemoteSwiftPackageReference "swift-markdown-ui" */,
+				268E8CF52EA69D3300D41C59 /* XCRemoteSwiftPackageReference "Defaults" */,
+				268E8CFA2EA69D9100D41C59 /* XCRemoteSwiftPackageReference "AlertToast" */,
+				268E8CFD2EA69DC700D41C59 /* XCRemoteSwiftPackageReference "Highlightr" */,
+				268E8D002EA69E1000D41C59 /* XCRemoteSwiftPackageReference "AnyCodable" */,
+				268E8D032EA69E9C00D41C59 /* XCRemoteSwiftPackageReference "Luminare" */,
+				268E8D062EA69F4D00D41C59 /* XCRemoteSwiftPackageReference "Alamofire" */,
+			);
+			preferredProjectObjectVersion = 77;
+			productRefGroup = 26FE08B92D79D07100438583 /* Products */;
+			projectDirPath = "";
+			projectRoot = "";
+			targets = (
+				26FE08B72D79D07100438583 /* InferX */,
+				265D77732DB9B0BA009422B2 /* InferXTests */,
+			);
+		};
+/* End PBXProject section */
+
+/* Begin PBXResourcesBuildPhase section */
+		265D77722DB9B0BA009422B2 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		26FE08B62D79D07100438583 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXResourcesBuildPhase section */
+
+/* Begin PBXSourcesBuildPhase section */
+		265D77702DB9B0BA009422B2 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		26FE08B42D79D07100438583 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXSourcesBuildPhase section */
+
+/* Begin PBXTargetDependency section */
+		265D77792DB9B0BA009422B2 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 26FE08B72D79D07100438583 /* InferX */;
+			targetProxy = 265D77782DB9B0BA009422B2 /* PBXContainerItemProxy */;
+		};
+/* End PBXTargetDependency section */
+
+/* Begin XCBuildConfiguration section */
+		265D777B2DB9B0BA009422B2 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = 446SV2HGW5;
+				GENERATE_INFOPLIST_FILE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 18.4;
+				MACOSX_DEPLOYMENT_TARGET = 15.4;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = mingdw.InferXTests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = auto;
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator macosx xros xrsimulator";
+				SWIFT_EMIT_LOC_STRINGS = NO;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2,7";
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/InferX.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/InferX";
+				XROS_DEPLOYMENT_TARGET = 2.4;
+			};
+			name = Debug;
+		};
+		265D777C2DB9B0BA009422B2 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = 446SV2HGW5;
+				GENERATE_INFOPLIST_FILE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 18.4;
+				MACOSX_DEPLOYMENT_TARGET = 15.4;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = mingdw.InferXTests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = auto;
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator macosx xros xrsimulator";
+				SWIFT_EMIT_LOC_STRINGS = NO;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2,7";
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/InferX.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/InferX";
+				XROS_DEPLOYMENT_TARGET = 2.4;
+			};
+			name = Release;
+		};
+		26FE08C72D79D07200438583 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++20";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = NO;
+				DEAD_CODE_STRIPPING = YES;
+				DEBUG_INFORMATION_FORMAT = dwarf;
+				DEVELOPMENT_TEAM = 446SV2HGW5;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_TESTABILITY = YES;
+				ENABLE_USER_SCRIPT_SANDBOXING = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu17;
+				GCC_DYNAMIC_NO_PIC = NO;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"DEBUG=1",
+					"$(inherited)",
+				);
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
+				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
+				MTL_FAST_MATH = YES;
+				ONLY_ACTIVE_ARCH = YES;
+				STRING_CATALOG_GENERATE_SYMBOLS = YES;
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = "DEBUG $(inherited)";
+				SWIFT_DEFAULT_ACTOR_ISOLATION = nonisolated;
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
+				SWIFT_UPCOMING_FEATURE_NONISOLATED_NONSENDING_BY_DEFAULT = YES;
+				SWIFT_VERSION = 6.0;
+			};
+			name = Debug;
+		};
+		26FE08C82D79D07200438583 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++20";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = NO;
+				DEAD_CODE_STRIPPING = YES;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				DEVELOPMENT_TEAM = 446SV2HGW5;
+				ENABLE_NS_ASSERTIONS = NO;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_USER_SCRIPT_SANDBOXING = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu17;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
+				MTL_ENABLE_DEBUG_INFO = NO;
+				MTL_FAST_MATH = YES;
+				STRING_CATALOG_GENERATE_SYMBOLS = YES;
+				SWIFT_COMPILATION_MODE = wholemodule;
+				SWIFT_DEFAULT_ACTOR_ISOLATION = nonisolated;
+				SWIFT_UPCOMING_FEATURE_NONISOLATED_NONSENDING_BY_DEFAULT = YES;
+				SWIFT_VERSION = 6.0;
+			};
+			name = Release;
+		};
+		26FE08CA2D79D07200438583 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_ENTITLEMENTS = InferX/InferX.entitlements;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEAD_CODE_STRIPPING = YES;
+				DEVELOPMENT_ASSET_PATHS = "InferX/Preview\\ Content InferX/Assets.xcassets";
+				ENABLE_APP_SANDBOX = YES;
+				ENABLE_HARDENED_RUNTIME = YES;
+				ENABLE_OUTGOING_NETWORK_CONNECTIONS = YES;
+				ENABLE_PREVIEWS = YES;
+				ENABLE_USER_SELECTED_FILES = readwrite;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.developer-tools";
+				"INFOPLIST_KEY_UIApplicationSceneManifest_Generation[sdk=iphoneos*]" = YES;
+				"INFOPLIST_KEY_UIApplicationSceneManifest_Generation[sdk=iphonesimulator*]" = YES;
+				"INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents[sdk=iphoneos*]" = YES;
+				"INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents[sdk=iphonesimulator*]" = YES;
+				"INFOPLIST_KEY_UILaunchScreen_Generation[sdk=iphoneos*]" = YES;
+				"INFOPLIST_KEY_UILaunchScreen_Generation[sdk=iphonesimulator*]" = YES;
+				"INFOPLIST_KEY_UIStatusBarStyle[sdk=iphoneos*]" = UIStatusBarStyleDefault;
+				"INFOPLIST_KEY_UIStatusBarStyle[sdk=iphonesimulator*]" = UIStatusBarStyleDefault;
+				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				IPHONEOS_DEPLOYMENT_TARGET = 18.2;
+				LD_RUNPATH_SEARCH_PATHS = "@executable_path/Frameworks";
+				"LD_RUNPATH_SEARCH_PATHS[sdk=macosx*]" = "@executable_path/../Frameworks";
+				MACOSX_DEPLOYMENT_TARGET = 15.0;
+				MARKETING_VERSION = 1.0;
+				ONLY_ACTIVE_ARCH = YES;
+				PRODUCT_BUNDLE_IDENTIFIER = mingdw.InferX;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = macosx;
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator macosx xros xrsimulator";
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_VERSION = 6.0;
+				TARGETED_DEVICE_FAMILY = "1,2,7";
+				XROS_DEPLOYMENT_TARGET = 2.2;
+			};
+			name = Debug;
+		};
+		26FE08CB2D79D07200438583 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_ENTITLEMENTS = InferX/InferX.entitlements;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEAD_CODE_STRIPPING = YES;
+				DEVELOPMENT_ASSET_PATHS = "InferX/Preview\\ Content InferX/Assets.xcassets";
+				ENABLE_APP_SANDBOX = YES;
+				ENABLE_HARDENED_RUNTIME = YES;
+				ENABLE_OUTGOING_NETWORK_CONNECTIONS = YES;
+				ENABLE_PREVIEWS = YES;
+				ENABLE_USER_SELECTED_FILES = readwrite;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.developer-tools";
+				"INFOPLIST_KEY_UIApplicationSceneManifest_Generation[sdk=iphoneos*]" = YES;
+				"INFOPLIST_KEY_UIApplicationSceneManifest_Generation[sdk=iphonesimulator*]" = YES;
+				"INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents[sdk=iphoneos*]" = YES;
+				"INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents[sdk=iphonesimulator*]" = YES;
+				"INFOPLIST_KEY_UILaunchScreen_Generation[sdk=iphoneos*]" = YES;
+				"INFOPLIST_KEY_UILaunchScreen_Generation[sdk=iphonesimulator*]" = YES;
+				"INFOPLIST_KEY_UIStatusBarStyle[sdk=iphoneos*]" = UIStatusBarStyleDefault;
+				"INFOPLIST_KEY_UIStatusBarStyle[sdk=iphonesimulator*]" = UIStatusBarStyleDefault;
+				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				IPHONEOS_DEPLOYMENT_TARGET = 18.2;
+				LD_RUNPATH_SEARCH_PATHS = "@executable_path/Frameworks";
+				"LD_RUNPATH_SEARCH_PATHS[arch=*]" = "@executable_path/Frameworks";
+				MACOSX_DEPLOYMENT_TARGET = 15.0;
+				MARKETING_VERSION = 1.0;
+				ONLY_ACTIVE_ARCH = YES;
+				PRODUCT_BUNDLE_IDENTIFIER = mingdw.InferX;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = macosx;
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator macosx xros xrsimulator";
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_VERSION = 6.0;
+				TARGETED_DEVICE_FAMILY = "1,2,7";
+				XROS_DEPLOYMENT_TARGET = 2.2;
+			};
+			name = Release;
+		};
+/* End XCBuildConfiguration section */
+
+/* Begin XCConfigurationList section */
+		265D777A2DB9B0BA009422B2 /* Build configuration list for PBXNativeTarget "InferXTests" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				265D777B2DB9B0BA009422B2 /* Debug */,
+				265D777C2DB9B0BA009422B2 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		26FE08B32D79D07100438583 /* Build configuration list for PBXProject "InferX" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				26FE08C72D79D07200438583 /* Debug */,
+				26FE08C82D79D07200438583 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		26FE08C92D79D07200438583 /* Build configuration list for PBXNativeTarget "InferX" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				26FE08CA2D79D07200438583 /* Debug */,
+				26FE08CB2D79D07200438583 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+/* End XCConfigurationList section */
+
+/* Begin XCRemoteSwiftPackageReference section */
+		262799342D9E0B6F002CB8A4 /* XCRemoteSwiftPackageReference "swiftui-introspect" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "git@github.com:siteline/swiftui-introspect.git";
+			requirement = {
+				branch = main;
+				kind = branch;
+			};
+		};
+		262799972DA2CCE5002CB8A4 /* XCRemoteSwiftPackageReference "Splash" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "git@github.com:JohnSundell/Splash.git";
+			requirement = {
+				branch = master;
+				kind = branch;
+			};
+		};
+		262799A02DA2D699002CB8A4 /* XCRemoteSwiftPackageReference "SwiftUIX" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/SwiftUIX/SwiftUIX";
+			requirement = {
+				branch = master;
+				kind = branch;
+			};
+		};
+		268E8A872EA69C5F00D41C59 /* XCRemoteSwiftPackageReference "swift-markdown-ui" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "git@github.com:menriothink/swift-markdown-ui.git";
+			requirement = {
+				branch = latex;
+				kind = branch;
+			};
+		};
+		268E8CF52EA69D3300D41C59 /* XCRemoteSwiftPackageReference "Defaults" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "git@github.com:sindresorhus/Defaults.git";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 9.0.6;
+			};
+		};
+		268E8CFA2EA69D9100D41C59 /* XCRemoteSwiftPackageReference "AlertToast" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "git@github.com:elai950/AlertToast.git";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 1.3.9;
+			};
+		};
+		268E8CFD2EA69DC700D41C59 /* XCRemoteSwiftPackageReference "Highlightr" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "git@github.com:raspu/Highlightr.git";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 2.3.0;
+			};
+		};
+		268E8D002EA69E1000D41C59 /* XCRemoteSwiftPackageReference "AnyCodable" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "git@github.com:Flight-School/AnyCodable.git";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 0.6.7;
+			};
+		};
+		268E8D032EA69E9C00D41C59 /* XCRemoteSwiftPackageReference "Luminare" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "git@github.com:MrKai77/Luminare.git";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 0.1.0;
+			};
+		};
+		268E8D062EA69F4D00D41C59 /* XCRemoteSwiftPackageReference "Alamofire" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "git@github.com:Alamofire/Alamofire.git";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 5.10.2;
+			};
+		};
+		26A32C232E3272D80053B454 /* XCRemoteSwiftPackageReference "swift-async-algorithms" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "git@github.com:apple/swift-async-algorithms.git";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 1.0.4;
+			};
+		};
+		26ACD1C82E1EA9C700C5D096 /* XCRemoteSwiftPackageReference "Semaphore" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "git@github.com:groue/Semaphore.git";
+			requirement = {
+				branch = main;
+				kind = branch;
+			};
+		};
+		26ACD26A2E1EAE8600C5D096 /* XCRemoteSwiftPackageReference "swift-argument-parser" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "git@github.com:apple/swift-argument-parser.git";
+			requirement = {
+				branch = main;
+				kind = branch;
+			};
+		};
+		26D48DA92EA6865A00857B41 /* XCRemoteSwiftPackageReference "mlx-swift-examples" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "git@github.com:ml-explore/mlx-swift-examples.git";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 2.29.1;
+			};
+		};
+		26E091F12DDE00E60007267A /* XCRemoteSwiftPackageReference "swift-markdown" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/swiftlang/swift-markdown.git";
+			requirement = {
+				branch = main;
+				kind = branch;
+			};
+		};
+		26F879922DFDD77D002CB8FB /* XCRemoteSwiftPackageReference "SwiftSoup" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "git@github.com:scinfu/SwiftSoup.git";
+			requirement = {
+				branch = master;
+				kind = branch;
+			};
+		};
+/* End XCRemoteSwiftPackageReference section */
+
+/* Begin XCSwiftPackageProductDependency section */
+		262799352D9E0B6F002CB8A4 /* SwiftUIIntrospect */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 262799342D9E0B6F002CB8A4 /* XCRemoteSwiftPackageReference "swiftui-introspect" */;
+			productName = SwiftUIIntrospect;
+		};
+		262799392D9E0B6F002CB8A4 /* SwiftUIIntrospect-Static */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 262799342D9E0B6F002CB8A4 /* XCRemoteSwiftPackageReference "swiftui-introspect" */;
+			productName = "SwiftUIIntrospect-Static";
+		};
+		262799982DA2CCE5002CB8A4 /* Splash */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 262799972DA2CCE5002CB8A4 /* XCRemoteSwiftPackageReference "Splash" */;
+			productName = Splash;
+		};
+		262799A12DA2D699002CB8A4 /* SwiftUIX */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 262799A02DA2D699002CB8A4 /* XCRemoteSwiftPackageReference "SwiftUIX" */;
+			productName = SwiftUIX;
+		};
+		268E8A882EA69C5F00D41C59 /* MarkdownUI */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 268E8A872EA69C5F00D41C59 /* XCRemoteSwiftPackageReference "swift-markdown-ui" */;
+			productName = MarkdownUI;
+		};
+		268E8CF62EA69D3300D41C59 /* Defaults */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 268E8CF52EA69D3300D41C59 /* XCRemoteSwiftPackageReference "Defaults" */;
+			productName = Defaults;
+		};
+		268E8CF82EA69D3300D41C59 /* DefaultsMacros */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 268E8CF52EA69D3300D41C59 /* XCRemoteSwiftPackageReference "Defaults" */;
+			productName = DefaultsMacros;
+		};
+		268E8CFB2EA69D9100D41C59 /* AlertToast */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 268E8CFA2EA69D9100D41C59 /* XCRemoteSwiftPackageReference "AlertToast" */;
+			productName = AlertToast;
+		};
+		268E8CFE2EA69DC700D41C59 /* Highlightr */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 268E8CFD2EA69DC700D41C59 /* XCRemoteSwiftPackageReference "Highlightr" */;
+			productName = Highlightr;
+		};
+		268E8D012EA69E1000D41C59 /* AnyCodable */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 268E8D002EA69E1000D41C59 /* XCRemoteSwiftPackageReference "AnyCodable" */;
+			productName = AnyCodable;
+		};
+		268E8D042EA69E9C00D41C59 /* Luminare */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 268E8D032EA69E9C00D41C59 /* XCRemoteSwiftPackageReference "Luminare" */;
+			productName = Luminare;
+		};
+		268E8D072EA69F4E00D41C59 /* Alamofire */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 268E8D062EA69F4D00D41C59 /* XCRemoteSwiftPackageReference "Alamofire" */;
+			productName = Alamofire;
+		};
+		26A32C242E3272D80053B454 /* AsyncAlgorithms */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 26A32C232E3272D80053B454 /* XCRemoteSwiftPackageReference "swift-async-algorithms" */;
+			productName = AsyncAlgorithms;
+		};
+		26ACD1C92E1EA9C700C5D096 /* Semaphore */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 26ACD1C82E1EA9C700C5D096 /* XCRemoteSwiftPackageReference "Semaphore" */;
+			productName = Semaphore;
+		};
+		26ACD26B2E1EAE8600C5D096 /* ArgumentParser */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 26ACD26A2E1EAE8600C5D096 /* XCRemoteSwiftPackageReference "swift-argument-parser" */;
+			productName = ArgumentParser;
+		};
+		26D48DAA2EA6865A00857B41 /* MLXEmbedders */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 26D48DA92EA6865A00857B41 /* XCRemoteSwiftPackageReference "mlx-swift-examples" */;
+			productName = MLXEmbedders;
+		};
+		26D48DAC2EA6865A00857B41 /* MLXLLM */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 26D48DA92EA6865A00857B41 /* XCRemoteSwiftPackageReference "mlx-swift-examples" */;
+			productName = MLXLLM;
+		};
+		26D48DAE2EA6865A00857B41 /* MLXLMCommon */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 26D48DA92EA6865A00857B41 /* XCRemoteSwiftPackageReference "mlx-swift-examples" */;
+			productName = MLXLMCommon;
+		};
+		26D48DB02EA6865A00857B41 /* MLXMNIST */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 26D48DA92EA6865A00857B41 /* XCRemoteSwiftPackageReference "mlx-swift-examples" */;
+			productName = MLXMNIST;
+		};
+		26D48DB22EA6865A00857B41 /* MLXVLM */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 26D48DA92EA6865A00857B41 /* XCRemoteSwiftPackageReference "mlx-swift-examples" */;
+			productName = MLXVLM;
+		};
+		26E091F32DDE01690007267A /* Markdown */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 26E091F12DDE00E60007267A /* XCRemoteSwiftPackageReference "swift-markdown" */;
+			productName = Markdown;
+		};
+		26F879932DFDD77D002CB8FB /* SwiftSoup */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 26F879922DFDD77D002CB8FB /* XCRemoteSwiftPackageReference "SwiftSoup" */;
+			productName = SwiftSoup;
+		};
+		26FFEC412DF3004A000DFB9E /* SwiftMath */ = {
+			isa = XCSwiftPackageProductDependency;
+			productName = SwiftMath;
+		};
+/* End XCSwiftPackageProductDependency section */
+	};
+	rootObject = 26FE08B02D79D07100438583 /* Project object */;
+}
