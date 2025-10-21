@@ -93,13 +93,13 @@ jobs:
       run: |
         xcodebuild -resolvePackageDependencies \
           -project InferX/InferX.xcodeproj \
-          -scheme InferX
+          -scheme InferX-release
 
     - name: Build project
       run: |
         xcodebuild build \
           -project InferX/InferX.xcodeproj \
-          -scheme InferX \
+          -scheme InferX-release \
           -destination 'platform=macOS' \
           -configuration Debug \
           CODE_SIGN_IDENTITY="" \
@@ -112,7 +112,7 @@ jobs:
       run: |
         xcodebuild test \
           -project InferX/InferX.xcodeproj \
-          -scheme InferX \
+          -scheme InferX-release \
           -destination 'platform=macOS' \
           CODE_SIGN_IDENTITY="" \
           CODE_SIGNING_REQUIRED=NO \
