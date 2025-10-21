@@ -138,7 +138,7 @@ extension HFApi {
         sort: String = "",
         limit: String = "20",
         direction: String = "-1",
-        filter: String = "mlx",
+        filter: String = "mlx"
     ) async throws -> (models: [HuggingFaceModel], nextUrl: URL?) {
         var urlComponents = URLComponents(string: "\(self.endpoint)/api/models")!
         var queryItems = [
@@ -189,7 +189,7 @@ extension HFApi {
         let request = try buildRequest(url: urlComponents.url!)
         return try await httpClient.send(request: request, with: HuggingFaceModel.self)
     }
-    
+
     func getRemoteModelInfo(repoId: String) async throws -> HuggingFaceModel {
         var model: HuggingFaceModel = try await self.getRemoteModel(repoId: repoId)
 
@@ -198,7 +198,7 @@ extension HFApi {
                 let modelId = model.id
                 for sibling in siblings {
                     let filename = sibling.rfilename
-                    
+
                     group.addTask {
                         let fileMeta = try await self.getFileMetadata(repoId: modelId, filename: filename)
                         return (filename: filename, meta: fileMeta)
@@ -216,7 +216,7 @@ extension HFApi {
 
         return model
     }
-    
+
     func getFileMetadata(
         repoId: String,
         filename: String,

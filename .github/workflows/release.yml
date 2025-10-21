@@ -67,9 +67,7 @@ jobs:
           -configuration Release \
           -destination 'generic/platform=macOS' \
           -derivedDataPath ./build/DerivedData \
-          CODE_SIGN_IDENTITY="" \
-          CODE_SIGNING_REQUIRED=NO \
-          CODE_SIGNING_ALLOWED=NO \
+          CODE_SIGN_IDENTITY="-" \
           -skipMacroValidation \
           -skipPackagePluginValidation \
           | tee build.log
@@ -83,6 +81,16 @@ jobs:
         fi
 
         echo "✅ Found app at: $APP_PATH"
+
+        # Ad-hoc sign the app
+        echo "🔐 Signing app with ad-hoc signature..."
+        codesign --force --deep --sign - "$APP_PATH"
+
+        # Verify signature
+        echo "📋 Verifying signature..."
+        codesign -dvvv "$APP_PATH" 2>&1 | head -20
+
+        echo "✅ App signed successfully"
 
         # Create archive structure manually
         mkdir -p ./build/InferX.xcarchive/Products/Applications
@@ -130,12 +138,27 @@ jobs:
         - Incremental Markdown rendering
         - Apple Silicon optimization (MLX)
 
-        ## Installation
+        ## ⚠️ Installation Instructions
 
+        This app is **ad-hoc signed** and not notarized by Apple. To install:
+
+        ### Method 1: Right-Click Open (Recommended)
         1. Download `InferX-${{ steps.get_version.outputs.VERSION }}.dmg`
         2. Open the DMG file
         3. Drag InferX.app to Applications folder
-        4. Launch InferX and configure your model APIs
+        4. **Right-click** InferX.app → Select **"Open"** (not double-click!)
+        5. Click **"Open"** in the security dialog
+
+        ### Method 2: Remove Quarantine (Terminal)
+        ```bash
+        # After dragging to Applications
+        xattr -cr /Applications/InferX.app
+        open /Applications/InferX.app
+        ```
+
+        ### Troubleshooting
+        - If you see "InferX is damaged": The app is not notarized, use Method 1 or 2
+        - If blocked by Gatekeeper: Go to System Settings → Privacy & Security → Click "Open Anyway"
 
         ## System Requirements
         - macOS 15.0 (Sequoia) or later
