@@ -243,10 +243,13 @@ struct MessageData: Identifiable, Sendable {
     var realContent: String {
         guard self.role == .assistant, modelProvider != .gemini else { return content }
 
-        let completeThinkBlockRegex = try! NSRegularExpression(
+        guard let completeThinkBlockRegex = try? NSRegularExpression(
             pattern: "<think>.*?</think>",
             options: .dotMatchesLineSeparators
-        )
+        ) else {
+            return ""
+        }
+        
         let fullRange = NSRange(content.startIndex..., in: content)
         let contentWithoutFullBlocks = completeThinkBlockRegex.stringByReplacingMatches(
             in: content,

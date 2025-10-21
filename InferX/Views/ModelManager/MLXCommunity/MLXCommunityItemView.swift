@@ -12,9 +12,9 @@ struct MLXCommunityItemView: View {
     @Environment(ModelManagerModel.self) var modelManager
 
     let modelAPI: ModelAPIDescriptor
-    
+
     @Binding var remoteHFModel: RemoteHFModel
-    
+
     let animationSpeed: Double = 40.0
 
     @State private var isLoading = false
@@ -24,10 +24,10 @@ struct MLXCommunityItemView: View {
     @State private var isHoveringForItem = false
     @State private var hfModel: HFModel?
     @State private var errorAlert: ErrorAlert?
-    
+
     var body: some View {
         VStack(alignment: .leading, spacing: 8) {
-            
+
             modelItemView
 
             modelInfoView
@@ -91,7 +91,7 @@ struct MLXCommunityItemView: View {
         }
         .buttonStyle(DarkenOnPressButtonCircleStyle())
     }
-    
+
     @ViewBuilder
     private var modelInfoView: some View {
         HStack(spacing: 20) {
@@ -126,7 +126,7 @@ struct MLXCommunityItemView: View {
             }
         }
     }
-    
+
     @ViewBuilder
     private var modelTagsView: some View {
         ScrollView(.horizontal, showsIndicators: false) {
@@ -160,18 +160,18 @@ struct MLXCommunityItemView: View {
             }
         }
     }
-    
+
     private func fetchHFModelInfo() async {
         do {
             guard let modelAPI = modelManager.activeModelAPI else {
                 throw SimpleError(message: "There is no model API")
             }
-            
+
             hfModel = try await modelManager.hfModelListModel.getHFModel(
                 modelAPI: ModelAPIDescriptor(from: modelAPI),
                 for: remoteHFModel.id
             )
-            
+
             if remoteHFModel.filesMeta == nil {
                 remoteHFModel.filesMeta = try await modelManager.hfModelListModel.getRemoteHFModel(
                     modelAPI: ModelAPIDescriptor(from: modelAPI),
@@ -182,18 +182,18 @@ struct MLXCommunityItemView: View {
             print("\(error.localizedDescription)")
         }
     }
-    
+
     private func downloadNew() {
         Task {
             do {
                 guard let modelAPI = modelManager.activeModelAPI else {
                     throw SimpleError(message: "There is no model API")
                 }
-                
+
                 guard modelAPI.localModelsDir != nil else {
                     throw SimpleError(message: "Model cache dir is null, please select on")
                 }
-                
+
                 if hfModel == nil {
                     isLoading = true
                     try await modelManager.hfModelListModel.downloadNew(
@@ -202,7 +202,7 @@ struct MLXCommunityItemView: View {
                     )
                     isLoading = false
                 }
-                
+
                 withAnimation(.easeInOut(duration: 0.5)) {
                     modelManager.selectedItem = .hfModelListView
                 }
@@ -210,12 +210,12 @@ struct MLXCommunityItemView: View {
                 isLoading = false
                 let title = "Failed to add new model download"
                 let message = error.localizedDescription
-                
+
                 self.errorAlert = ErrorAlert(title: title, message: message)
             }
         }
     }
-    
+
     func startAnimation() {
         guard !isAnimating else { return }
         isAnimating = true
@@ -275,4 +275,3 @@ struct MLXCommunityItemView: View {
         return formatter.string(fromByteCount: bytes)
     }
 }
-

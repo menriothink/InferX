@@ -27,38 +27,38 @@ struct RenderMessageContent: View {
     @Default(.fontNameBlack) var fontNameBlack
     @Default(.backgroundContentLightRadius) var backgroundContentLightRadius
     @Default(.backgroundContentDarkRadius) var backgroundContentDarkRadius
-    
+
     @State private var isExpanded: Bool = false
-    
+
     private let lineLimitThreshold = 500
 
     private var totalLineCount: Int {
         return messageData.content.count
     }
-    
+
     private var needsTruncation: Bool {
         totalLineCount > lineLimitThreshold
     }
-    
+
     private var currentLineLimit: Int {
         if needsTruncation && !isExpanded {
             return lineLimitThreshold
         }
         return totalLineCount
     }
-    
+
     var fontName: String {
         get {
             colorScheme == .dark ? fontNameBlack : fontNameWhite
         }
     }
-    
+
     var fontSize: CGFloat {
         get {
             colorScheme == .dark ? fontSizeBlack : fontSizeWhite
         }
     }
-    
+
     var fontWeight: FontWeightOption {
         get {
             colorScheme == .dark ? fontWeightBlack : fontWeightWhite
@@ -70,7 +70,7 @@ struct RenderMessageContent: View {
             colorScheme == .dark ? backgroundContentDarkRadius : backgroundContentLightRadius
         }
     }
-    
+
     var body: some View {
         VStack(alignment: .trailing) {
             if !messageData.attachmentsData.isEmpty {
@@ -78,14 +78,14 @@ struct RenderMessageContent: View {
                     ForEach(Array(messageData.attachmentsData.keys), id: \.self) { attachmentId in
                         if let attachmentData = messageData.attachmentsData[attachmentId] {
                             MessageAttachmentView(
-                                attachmentData: attachmentData,
+                                attachmentData: attachmentData
                             )
                         }
                     }
                 }
                 .padding(.bottom, 10)
             }
-            
+
             Markdown(MarkdownContent(String(messageData.content.prefix(currentLineLimit))))
                 .markdownTextStyle {
                     FontFamily(.custom(fontName))
@@ -107,7 +107,7 @@ struct RenderMessageContent: View {
                         .stroke(Color.gray.opacity(0.1), lineWidth: 1)
                         .padding(-5)
                 )
-            
+
             if needsTruncation {
                 Button(action: {
                     withAnimation(.spring()) {

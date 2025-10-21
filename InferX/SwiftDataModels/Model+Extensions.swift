@@ -26,27 +26,27 @@ extension Model {
         )
     }
 
-    func applyParameter(_ p: ModelParameter) {
-        enableTemperature = p.enableTemperature
-        temperature = p.temperature
-        enableTopP = p.enableTopP
-        topP = p.topP
-        enableTopK = p.enableTopK
-        topK = p.topK
-        inputMessages = p.inputMessages
-        enableInputTokens = p.enableInputTokens
-        inputTokens = p.inputTokens
-        enableOutputTokens = p.enableOutputTokens
-        outputTokens = p.outputTokens
-        enableRepetitionPenalty = p.enableRepetitionPenalty
-        repetitionPenalty = p.repetitionPenalty
-        enableSystemPrompt = p.enableSystemPrompt
-        systemPrompt = p.systemPrompt
-        thinking = p.thinking
-        thinkingTags = p.thinkingTags
-        enableSeed = p.enableSeed
-        seed = p.seed
-        modelSize = p.modelSize
+    func applyParameter(_ parameter: ModelParameter) {
+        enableTemperature = parameter.enableTemperature
+        temperature = parameter.temperature
+        enableTopP = parameter.enableTopP
+        topP = parameter.topP
+        enableTopK = parameter.enableTopK
+        topK = parameter.topK
+        inputMessages = parameter.inputMessages
+        enableInputTokens = parameter.enableInputTokens
+        inputTokens = parameter.inputTokens
+        enableOutputTokens = parameter.enableOutputTokens
+        outputTokens = parameter.outputTokens
+        enableRepetitionPenalty = parameter.enableRepetitionPenalty
+        repetitionPenalty = parameter.repetitionPenalty
+        enableSystemPrompt = parameter.enableSystemPrompt
+        systemPrompt = parameter.systemPrompt
+        thinking = parameter.thinking
+        thinkingTags = parameter.thinkingTags
+        enableSeed = parameter.enableSeed
+        seed = parameter.seed
+        modelSize = parameter.modelSize
     }
 
     enum ModelError: Error, LocalizedError {

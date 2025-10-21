@@ -9,7 +9,7 @@ on:
 jobs:
   swiftlint:
     name: SwiftLint
-    runs-on: macos-14
+    runs-on: macos-26
 
     steps:
     - name: Checkout code
@@ -24,20 +24,48 @@ jobs:
 
   analyze:
     name: Static Analysis
-    runs-on: macos-14
+    runs-on: macos-26
 
     steps:
     - name: Checkout code
       uses: actions/checkout@v4
 
-    - name: Select Xcode version
-      run: sudo xcode-select -s /Applications/Xcode_16.2.app/Contents/Developer
+    - name: Setup SSH for private repositories
+      if: env.SSH_PRIVATE_KEY != ''
+      uses: webfactory/ssh-agent@v0.9.0
+      with:
+        ssh-private-key: ${{ secrets.SSH_PRIVATE_KEY }}
+      env:
+        SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
+
+    - name: Warning - SSH Key Not Configured
+      if: env.SSH_PRIVATE_KEY == ''
+      env:
+        SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
+      run: |
+        echo "⚠️  WARNING: SSH_PRIVATE_KEY secret is not configured!"
+        echo "📖 See .github/SSH_SETUP.md for setup instructions"
+
+    - name: Select Xcode 26 on macos-26
+      run: |
+        echo "Running on macos-26; using Xcode 26"
+        if [ -d "/Applications/Xcode_26.app" ]; then
+          echo "Using /Applications/Xcode_26.app"
+          sudo xcode-select -s /Applications/Xcode_26.app/Contents/Developer
+        fi
+        xcodebuild -version
+
+    - name: Resolve Package Dependencies
+      run: |
+        xcodebuild -resolvePackageDependencies \
+          -project InferX.xcodeproj \
+          -scheme InferX-release
 
     - name: Run Static Analyzer
       run: |
         xcodebuild analyze \
           -project InferX.xcodeproj \
-          -scheme InferX \
+          -scheme InferX-release \
           -destination 'platform=macOS' \
           CODE_SIGN_IDENTITY="" \
           CODE_SIGNING_REQUIRED=NO

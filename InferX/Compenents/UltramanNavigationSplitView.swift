@@ -113,7 +113,7 @@ struct UltramanNavigationSplitView<Sidebar: View, Detail: View>: View {
                             isSidebarVisible = false
                         }
                     }
-                
+
                 if isSidebarVisible {
                     sidebar()
                         .frame(width: sidebarWidth)
@@ -124,11 +124,11 @@ struct UltramanNavigationSplitView<Sidebar: View, Detail: View>: View {
                     Divider()
                     detail()
                         .frame(maxWidth: .infinity, maxHeight: .infinity)
-                        .onPreferenceChange(UltramanNavigationTitleKey.self) {
-                            navigationTitle = $0
+                        .onPreferenceChange(UltramanNavigationTitleKey.self) { newTitle in
+                            navigationTitle = newTitle
                         }
-                        .onPreferenceChange(UltramanNavigationToolbarKey.self) {
-                            toolbarItems = $0
+                        .onPreferenceChange(UltramanNavigationToolbarKey.self) { newItems in
+                            toolbarItems = newItems
                         }
                 }
 

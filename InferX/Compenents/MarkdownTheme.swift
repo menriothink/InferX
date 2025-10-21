@@ -105,7 +105,7 @@ struct MarkdownColours {
             .heading6 { configuration in
                 CustomThemView(
                     configuration: configuration,
-                    setFontWeight: .semibold,
+                    setFontWeight: .semibold
                 )
             }
             .paragraph { configuration in

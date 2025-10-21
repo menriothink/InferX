@@ -9,14 +9,52 @@ on:
 jobs:
   build:
     name: Build and Test InferX
-    runs-on: macos-14
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [macos-26]
 
     steps:
     - name: Checkout code
       uses: actions/checkout@v4
 
-    - name: Select Xcode version
-      run: sudo xcode-select -s /Applications/Xcode_16.2.app/Contents/Developer
+    - name: Set LLVM Profile File Path
+      run: echo "LLVM_PROFILE_FILE=${{ runner.temp }}/default.profraw" >> $GITHUB_ENV
+
+    - name: Setup SSH for private repositories
+      if: env.SSH_PRIVATE_KEY != ''
+      uses: webfactory/ssh-agent@v0.9.0
+      with:
+        ssh-private-key: ${{ secrets.SSH_PRIVATE_KEY }}
+      env:
+        SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
+
+    - name: Warning - SSH Key Not Configured
+      if: env.SSH_PRIVATE_KEY == ''
+      env:
+        SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
+      run: |
+        echo "⚠️  WARNING: SSH_PRIVATE_KEY secret is not configured!"
+        echo "📖 This project uses SSH URLs for Swift Package dependencies."
+        echo "🔧 To fix this, see: .github/SSH_SETUP.md"
+        echo ""
+        echo "Quick setup:"
+        echo "1. Generate SSH key: ssh-keygen -t ed25519 -C 'github-actions@inferx' -f ~/.ssh/id_ed25519_github_actions"
+        echo "2. Add public key to: https://github.com/settings/keys"
+        echo "3. Add private key to: https://github.com/${{ github.repository }}/settings/secrets/actions"
+        echo "   Secret name: SSH_PRIVATE_KEY"
+        echo ""
+        echo "⚠️  Build may fail due to missing SSH access to dependencies!"
+
+    - name: Select Xcode 26 on macos-26
+      if: matrix.os == 'macos-26'
+      run: |
+        echo "Running on macos-26; using Xcode 26"
+        if [ -d "/Applications/Xcode_26.app" ]; then
+          echo "Using /Applications/Xcode_26.app"
+          sudo xcode-select -s /Applications/Xcode_26.app/Contents/Developer
+        fi
+        xcodebuild -version
 
     - name: Show Xcode version
       run: xcodebuild -version
@@ -24,38 +62,60 @@ jobs:
     - name: Show available schemes
       run: xcodebuild -list -project InferX.xcodeproj
 
-    - name: Clean build folder
+    - name: Cache SPM dependencies
+      uses: actions/cache@v4
+      with:
+        path: |
+          .build
+          ~/Library/Developer/Xcode/DerivedData/**/SourcePackages
+        key: ${{ runner.os }}-spm-${{ hashFiles('**/Package.resolved') }}
+        restore-keys: |
+          ${{ runner.os }}-spm-
+
+    - name: Cache DerivedData
+      uses: actions/cache@v4
+      with:
+        path: ~/Library/Developer/Xcode/DerivedData
+        key: ${{ runner.os }}-deriveddata-${{ github.sha }}
+        restore-keys: |
+          ${{ runner.os }}-deriveddata-
+
+    - name: Resolve Package Dependencies
       run: |
-        xcodebuild clean \
+        xcodebuild -resolvePackageDependencies \
           -project InferX.xcodeproj \
-          -scheme InferX
+          -scheme InferX-release
 
     - name: Build project
       run: |
         xcodebuild build \
           -project InferX.xcodeproj \
-          -scheme InferX \
-          -destination 'platform=macOS,arch=x86_64' \
+          -scheme InferX-release \
+          -destination 'platform=macOS' \
           -configuration Debug \
           CODE_SIGN_IDENTITY="" \
           CODE_SIGNING_REQUIRED=NO \
-          CODE_SIGNING_ALLOWED=NO
+          CODE_SIGNING_ALLOWED=NO \
+          -skipMacroValidation \
+          -skipPackagePluginValidation
 
     - name: Run tests
       run: |
         xcodebuild test \
           -project InferX.xcodeproj \
-          -scheme InferX \
-          -destination 'platform=macOS,arch=x86_64' \
+          -scheme InferX-release \
+          -destination 'platform=macOS,name=Any Mac' \
           CODE_SIGN_IDENTITY="" \
-          CODE_SIGNING_REQUIRED=NO
+          CODE_SIGNING_REQUIRED=NO \
+          -skipMacroValidation \
+          -skipPackagePluginValidation
       continue-on-error: true
 
     - name: Archive build logs
       if: always()
       uses: actions/upload-artifact@v4
       with:
-        name: build-logs
+        name: build-logs-${{ matrix.os }}
         path: |
           ~/Library/Logs/DiagnosticReports/
           *.log

@@ -59,6 +59,7 @@ public extension Theme {
                 .dotAccess: Color(red: 0.45, green: 0.75, blue: 0.95),
                 .preprocessing: Color(red: 0.85, green: 0.45, blue: 0.15)
             ],
+            backgroundColor: Color(red: 0.15, green: 0.15, blue: 0.15)
         )
     }
         

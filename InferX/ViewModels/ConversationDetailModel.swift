@@ -165,7 +165,6 @@ final class ConversationDetailModel {
 
             let (topMessageData, bottomMessageData, messagesData) =
                         try await (earliestTask.value, latestTask.value, fetchMessagesTask.value)
-            //print("     topMessageData: \(String(describing: topMessageData))\n     bottomMessageData: \(String(describing: bottomMessageData))\n       messagesData: \(String(describing: messagesData))")
             return (topMessageData, bottomMessageData, messagesData)
         } catch {
             print("fetchMessages failed for conversation: \(conversationID)")

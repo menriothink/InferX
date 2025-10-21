@@ -18,6 +18,23 @@ jobs:
       with:
         fetch-depth: 0
 
+    - name: Setup SSH for private repositories
+      if: env.SSH_PRIVATE_KEY != ''
+      uses: webfactory/ssh-agent@v0.9.0
+      with:
+        ssh-private-key: ${{ secrets.SSH_PRIVATE_KEY }}
+      env:
+        SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
+
+    - name: Warning - SSH Key Not Configured
+      if: env.SSH_PRIVATE_KEY == ''
+      env:
+        SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
+      run: |
+        echo "⚠️  WARNING: SSH_PRIVATE_KEY secret is not configured!"
+        echo "📖 See .github/SSH_SETUP.md for configuration instructions"
+        echo "🔧 Add private key to: https://github.com/${{ github.repository }}/settings/secrets/actions"
+
     - name: Select Xcode version
       run: sudo xcode-select -s /Applications/Xcode_16.2.app/Contents/Developer
 
@@ -25,33 +42,97 @@ jobs:
       id: get_version
       run: echo "VERSION=${GITHUB_REF#refs/tags/}" >> $GITHUB_OUTPUT
 
-    - name: Build Release
+    # Cache Swift Package Manager dependencies
+    - name: Cache SPM dependencies
+      uses: actions/cache@v4
+      with:
+        path: |
+          .build
+          ~/Library/Developer/Xcode/DerivedData/**/SourcePackages
+        key: ${{ runner.os }}-spm-${{ hashFiles('**/Package.resolved') }}
+        restore-keys: |
+          ${{ runner.os }}-spm-
+
+    # Cache DerivedData for incremental builds
+    - name: Cache DerivedData
+      uses: actions/cache@v4
+      with:
+        path: ~/Library/Developer/Xcode/DerivedData
+        key: ${{ runner.os }}-release-deriveddata-${{ hashFiles('**/*.swift') }}
+        restore-keys: |
+          ${{ runner.os }}-release-deriveddata-
+
+    - name: Resolve Package Dependencies
       run: |
-        xcodebuild archive \
+        xcodebuild -resolvePackageDependencies \
+          -project InferX.xcodeproj \
+          -scheme InferX
+        echo "✅ Packages resolved"
+        echo "🛈 Dump build settings (macro related)"
+        xcodebuild -showBuildSettings -project InferX.xcodeproj -scheme InferX | grep -i -E 'MACRO|SWIFT_VERSION' || true
+
+    - name: Build Release (skip clean to avoid macro issues)
+      id: build_release
+      run: |
+        set -eo pipefail
+        echo "🛠 Building without clean (macro compatibility)"
+
+        # Create build directory
+        mkdir -p ./build
+
+        # Build directly without archive (archive implicitly cleans and triggers macro error)
+        xcodebuild build \
           -project InferX.xcodeproj \
           -scheme InferX \
           -configuration Release \
-          -archivePath ./build/InferX.xcarchive \
-          -destination 'platform=macOS,arch=arm64' \
-          CODE_SIGN_IDENTITY="" \
-          CODE_SIGNING_REQUIRED=NO \
-          CODE_SIGNING_ALLOWED=NO \
-          ONLY_ACTIVE_ARCH=NO
+          -destination 'generic/platform=macOS' \
+          -derivedDataPath ./build/DerivedData \
+          CODE_SIGN_IDENTITY="-" \
+          -skipMacroValidation \
+          -skipPackagePluginValidation \
+          | tee build.log
+
+        # Find the built app
+        APP_PATH=$(find ./build/DerivedData/Build/Products/Release -name "InferX.app" -type d | head -1)
+
+        if [ -z "$APP_PATH" ]; then
+          echo "❌ Failed to find InferX.app"
+          exit 1
+        fi
+
+        echo "✅ Found app at: $APP_PATH"
+
+        # Ad-hoc sign the app
+        echo "🔐 Signing app with ad-hoc signature..."
+        codesign --force --deep --sign - "$APP_PATH"
+
+        # Verify signature
+        echo "📋 Verifying signature..."
+        codesign -dvvv "$APP_PATH" 2>&1 | head -20
+
+        echo "✅ App signed successfully"
+
+        # Create archive structure manually
+        mkdir -p ./build/InferX.xcarchive/Products/Applications
+        cp -R "$APP_PATH" ./build/InferX.xcarchive/Products/Applications/
+
+        echo "✅ Archive created at ./build/InferX.xcarchive"
+
+    - name: Upload build logs (always)
+      if: always()
+      uses: actions/upload-artifact@v4
+      with:
+        name: release-build-logs
+        path: |
+          build.log
+        retention-days: 14
 
     - name: Create DMG
       run: |
-        # Create a disk image
         mkdir -p ./build/dmg
         cp -R ./build/InferX.xcarchive/Products/Applications/InferX.app ./build/dmg/
-
-        # Create symlink to Applications folder
         ln -s /Applications ./build/dmg/Applications
-
-        # Create DMG
-        hdiutil create -volname "InferX" \
-          -srcfolder ./build/dmg \
-          -ov -format UDZO \
-          ./build/InferX-${{ steps.get_version.outputs.VERSION }}.dmg
+        hdiutil create -volname "InferX" -srcfolder ./build/dmg -ov -format UDZO ./build/InferX-${{ steps.get_version.outputs.VERSION }}.dmg
 
     - name: Generate Release Notes
       id: release_notes
@@ -77,12 +158,27 @@ jobs:
         - Incremental Markdown rendering
         - Apple Silicon optimization (MLX)
 
-        ## Installation
+        ## ⚠️ Installation Instructions
 
+        This app is **ad-hoc signed** and not notarized by Apple. To install:
+
+        ### Method 1: Right-Click Open (Recommended)
         1. Download `InferX-${{ steps.get_version.outputs.VERSION }}.dmg`
         2. Open the DMG file
         3. Drag InferX.app to Applications folder
-        4. Launch InferX and configure your model APIs
+        4. **Right-click** InferX.app → Select **"Open"** (not double-click!)
+        5. Click **"Open"** in the security dialog
+
+        ### Method 2: Remove Quarantine (Terminal)
+        ```bash
+        # After dragging to Applications
+        xattr -cr /Applications/InferX.app
+        open /Applications/InferX.app
+        ```
+
+        ### Troubleshooting
+        - If you see "InferX is damaged": The app is not notarized, use Method 1 or 2
+        - If blocked by Gatekeeper: Go to System Settings → Privacy & Security → Click "Open Anyway"
 
         ## System Requirements
         - macOS 15.0 (Sequoia) or later
@@ -102,7 +198,6 @@ jobs:
         prerelease: false
         files: |
           ./build/InferX-${{ steps.get_version.outputs.VERSION }}.dmg
-        generate_release_notes: true
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 

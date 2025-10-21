@@ -53,7 +53,28 @@ git push origin v1.0.0
 
 ## Setup Instructions
 
-### 1. Enable GitHub Actions
+### 1. Configure SSH Access for Private Dependencies
+
+**Important:** This project uses SSH URLs for Swift Package dependencies. You must configure SSH access before the workflows can run successfully.
+
+See [**SSH_SETUP.md**](../SSH_SETUP.md) for complete instructions.
+
+**Quick Setup:**
+
+1. Generate SSH key:
+   ```bash
+   ssh-keygen -t ed25519 -C "github-actions@inferx" -f ~/.ssh/id_ed25519_github_actions
+   ```
+
+2. Add public key to GitHub account:
+   - https://github.com/settings/keys
+
+3. Add private key to repository secrets:
+   - Go to: https://github.com/menriothink/InferX/settings/secrets/actions
+   - Create secret named `SSH_PRIVATE_KEY`
+   - Paste the entire private key content
+
+### 2. Enable GitHub Actions
 
 1. Go to your repository settings
 2. Navigate to "Actions" → "General"
