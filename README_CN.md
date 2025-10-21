@@ -39,7 +39,7 @@
 
 ```bash
 # 克隆仓库
-git clone https://github.com/yourusername/InferX.git
+git clone https://github.com/menriothink/InferX.git
 cd InferX
 
 # 打开项目

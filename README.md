@@ -102,7 +102,7 @@ A powerful macOS AI chat application supporting multiple AI model providers with
 1. **Clone the repository**
 
    ```bash
-   git clone https://github.com/yourusername/InferX.git
+   git clone https://github.com/menriothink/InferX.git
    cd InferX
    ```
 
