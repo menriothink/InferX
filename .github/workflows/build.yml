@@ -55,31 +55,27 @@ jobs:
           -project InferX.xcodeproj \
           -scheme InferX
 
-    - name: Clean build folder
-      run: |
-        xcodebuild clean \
-          -project InferX.xcodeproj \
-          -scheme InferX
-
-    - name: Build project
+    - name: Build project (skip clean to avoid macro issues)
       run: |
         xcodebuild build \
           -project InferX.xcodeproj \
           -scheme InferX \
-          -destination 'platform=macOS' \
+          -destination 'generic/platform=macOS' \
           -configuration Debug \
           CODE_SIGN_IDENTITY="" \
           CODE_SIGNING_REQUIRED=NO \
-          CODE_SIGNING_ALLOWED=NO
+          CODE_SIGNING_ALLOWED=NO \
+          OTHER_SWIFT_FLAGS="-enable-experimental-feature Macros"
 
     - name: Run tests
       run: |
         xcodebuild test \
           -project InferX.xcodeproj \
           -scheme InferX \
-          -destination 'platform=macOS' \
+          -destination 'platform=macOS,name=Any Mac' \
           CODE_SIGN_IDENTITY="" \
-          CODE_SIGNING_REQUIRED=NO
+          CODE_SIGNING_REQUIRED=NO \
+          OTHER_SWIFT_FLAGS="-enable-experimental-feature Macros"
       continue-on-error: true
 
     - name: Archive build logs

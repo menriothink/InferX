@@ -51,38 +51,43 @@ jobs:
         echo "🛈 Dump build settings (macro related)"
         xcodebuild -showBuildSettings -project InferX.xcodeproj -scheme InferX | grep -i -E 'MACRO|SWIFT_VERSION' || true
 
-    - name: Build Release (with Macros enabled)
+    - name: Build Release (skip clean to avoid macro issues)
       id: build_release
       run: |
         set -eo pipefail
-        echo "🛠 First attempt (enable macros)"
-        xcodebuild archive \
+        echo "🛠 Building without clean (macro compatibility)"
+
+        # Create build directory
+        mkdir -p ./build
+
+        # Build directly without archive (archive implicitly cleans and triggers macro error)
+        xcodebuild build \
           -project InferX.xcodeproj \
           -scheme InferX \
           -configuration Release \
-          -archivePath ./build/InferX.xcarchive \
           -destination 'generic/platform=macOS' \
+          -derivedDataPath ./build/DerivedData \
           CODE_SIGN_IDENTITY="" \
           CODE_SIGNING_REQUIRED=NO \
           CODE_SIGNING_ALLOWED=NO \
           OTHER_SWIFT_FLAGS="-enable-experimental-feature Macros" \
-          | tee build_attempt_1.log || export BUILD_FAILED=1
+          | tee build.log
 
-        if [ "${BUILD_FAILED}" = "1" ]; then
-          echo "⚠️ First attempt failed. Retrying with -skipMacroValidation"
-          xcodebuild archive \
-            -project InferX.xcodeproj \
-            -scheme InferX \
-            -configuration Release \
-            -archivePath ./build/InferX.xcarchive \
-            -destination 'generic/platform=macOS' \
-            CODE_SIGN_IDENTITY="" \
-            CODE_SIGNING_REQUIRED=NO \
-            CODE_SIGNING_ALLOWED=NO \
-            OTHER_SWIFT_FLAGS="-enable-experimental-feature Macros" \
-            -skipMacroValidation \
-            | tee build_attempt_retry.log
+        # Find the built app
+        APP_PATH=$(find ./build/DerivedData/Build/Products/Release -name "InferX.app" -type d | head -1)
+
+        if [ -z "$APP_PATH" ]; then
+          echo "❌ Failed to find InferX.app"
+          exit 1
         fi
+
+        echo "✅ Found app at: $APP_PATH"
+
+        # Create archive structure manually
+        mkdir -p ./build/InferX.xcarchive/Products/Applications
+        cp -R "$APP_PATH" ./build/InferX.xcarchive/Products/Applications/
+
+        echo "✅ Archive created at ./build/InferX.xcarchive"
 
     - name: Upload build logs (always)
       if: always()
@@ -90,8 +95,7 @@ jobs:
       with:
         name: release-build-logs
         path: |
-          build_attempt_1.log
-          build_attempt_retry.log
+          build.log
         retention-days: 14
 
     - name: Create DMG
