@@ -46,8 +46,14 @@ jobs:
         echo "⚠️  WARNING: SSH_PRIVATE_KEY secret is not configured!"
         echo "📖 See .github/SSH_SETUP.md for setup instructions"
 
-    - name: Select Xcode version
-      run: sudo xcode-select -s /Applications/Xcode_26.app/Contents/Developer
+    - name: Select Xcode 26 on macos-26
+      run: |
+        echo "Running on macos-26; using Xcode 26"
+        if [ -d "/Applications/Xcode_26.app" ]; then
+          echo "Using /Applications/Xcode_26.app"
+          sudo xcode-select -s /Applications/Xcode_26.app/Contents/Developer
+        fi
+        xcodebuild -version
 
     - name: Resolve Package Dependencies
       run: |
