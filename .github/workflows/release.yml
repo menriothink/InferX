@@ -42,6 +42,12 @@ jobs:
       id: get_version
       run: echo "VERSION=${GITHUB_REF#refs/tags/}" >> $GITHUB_OUTPUT
 
+    - name: Resolve Package Dependencies
+      run: |
+        xcodebuild -resolvePackageDependencies \
+          -project InferX.xcodeproj \
+          -scheme InferX
+
     - name: Build Release
       run: |
         xcodebuild archive \
@@ -49,11 +55,10 @@ jobs:
           -scheme InferX \
           -configuration Release \
           -archivePath ./build/InferX.xcarchive \
-          -destination 'platform=macOS,arch=arm64' \
+          -destination 'platform=macOS' \
           CODE_SIGN_IDENTITY="" \
           CODE_SIGNING_REQUIRED=NO \
-          CODE_SIGNING_ALLOWED=NO \
-          ONLY_ACTIVE_ARCH=NO
+          CODE_SIGNING_ALLOWED=NO
 
     - name: Create DMG
       run: |

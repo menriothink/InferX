@@ -49,6 +49,12 @@ jobs:
     - name: Show available schemes
       run: xcodebuild -list -project InferX.xcodeproj
 
+    - name: Resolve Package Dependencies
+      run: |
+        xcodebuild -resolvePackageDependencies \
+          -project InferX.xcodeproj \
+          -scheme InferX
+
     - name: Clean build folder
       run: |
         xcodebuild clean \
@@ -60,7 +66,7 @@ jobs:
         xcodebuild build \
           -project InferX.xcodeproj \
           -scheme InferX \
-          -destination 'platform=macOS,arch=x86_64' \
+          -destination 'platform=macOS' \
           -configuration Debug \
           CODE_SIGN_IDENTITY="" \
           CODE_SIGNING_REQUIRED=NO \
@@ -71,7 +77,7 @@ jobs:
         xcodebuild test \
           -project InferX.xcodeproj \
           -scheme InferX \
-          -destination 'platform=macOS,arch=x86_64' \
+          -destination 'platform=macOS' \
           CODE_SIGN_IDENTITY="" \
           CODE_SIGNING_REQUIRED=NO
       continue-on-error: true
