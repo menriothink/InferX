@@ -14,12 +14,12 @@ jobs:
       matrix:
         os: [macos-26, macos-latest]
 
-    env:
-      LLVM_PROFILE_FILE: "${{ runner.temp }}/default.profraw"
-
     steps:
     - name: Checkout code
       uses: actions/checkout@v4
+
+    - name: Set LLVM Profile File Path
+      run: echo "LLVM_PROFILE_FILE=${{ runner.temp }}/default.profraw" >> $GITHUB_ENV
 
     - name: Setup SSH for private repositories
       if: secrets.SSH_PRIVATE_KEY != ''
