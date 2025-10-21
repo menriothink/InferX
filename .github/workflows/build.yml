@@ -22,13 +22,13 @@ jobs:
       run: echo "LLVM_PROFILE_FILE=${{ runner.temp }}/default.profraw" >> $GITHUB_ENV
 
     - name: Setup SSH for private repositories
-      if: ${{ secrets.SSH_PRIVATE_KEY != '' }}
+      if: secrets.SSH_PRIVATE_KEY != ''
       uses: webfactory/ssh-agent@v0.9.0
       with:
         ssh-private-key: ${{ secrets.SSH_PRIVATE_KEY }}
 
     - name: Warning - SSH Key Not Configured
-      if: ${{ secrets.SSH_PRIVATE_KEY == '' }}
+      if: secrets.SSH_PRIVATE_KEY == ''
       run: |
         echo "⚠️  WARNING: SSH_PRIVATE_KEY secret is not configured!"
         echo "📖 This project uses SSH URLs for Swift Package dependencies."
@@ -43,20 +43,20 @@ jobs:
         echo "⚠️  Build may fail due to missing SSH access to dependencies!"
 
     - name: Select Xcode 26 on macos-26
-      if: ${{ matrix.os == 'macos-26' }}
+      if: matrix.os == 'macos-26'
       run: |
-        echo "Running on macos-26; using Xcode 26 if available"
+        echo "Running on macos-26; using Xcode 26"
         if [ -d "/Applications/Xcode_26.app" ]; then
           echo "Using /Applications/Xcode_26.app"
-          export DEVELOPER_DIR=/Applications/Xcode_26.app/Contents/Developer
+          sudo xcode-select -s /Applications/Xcode_26.app/Contents/Developer
         fi
-        xcodebuild -version || true
+        xcodebuild -version
 
     - name: Select Xcode 16.2 on other macOS
-      if: ${{ matrix.os != 'macos-26' }}
+      if: matrix.os != 'macos-26'
       run: |
         sudo xcode-select -s /Applications/Xcode_16.2.app/Contents/Developer || true
-        xcodebuild -version || true
+        xcodebuild -version
 
     - name: Show runner info
       run: |
@@ -91,12 +91,12 @@ jobs:
           -project InferX/InferX.xcodeproj \
           -scheme InferX
 
-    - name: Build project (skip clean to avoid macro issues)
+    - name: Build project
       run: |
         xcodebuild build \
           -project InferX/InferX.xcodeproj \
           -scheme InferX \
-          -destination 'generic/platform=macOS' \
+          -destination 'platform=macOS' \
           -configuration Debug \
           CODE_SIGN_IDENTITY="" \
           CODE_SIGNING_REQUIRED=NO \
@@ -109,7 +109,7 @@ jobs:
         xcodebuild test \
           -project InferX/InferX.xcodeproj \
           -scheme InferX \
-          -destination 'generic/platform=macOS' \
+          -destination 'platform=macOS' \
           CODE_SIGN_IDENTITY="" \
           CODE_SIGNING_REQUIRED=NO \
           -skipMacroValidation \
@@ -120,7 +120,7 @@ jobs:
       if: always()
       uses: actions/upload-artifact@v4
       with:
-        name: build-logs
+        name: build-logs-${{ matrix.os }}
         path: |
           ~/Library/Logs/DiagnosticReports/
           *.log
