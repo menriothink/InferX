@@ -2,7 +2,7 @@ import SwiftUI
 
 struct HFModelItemView: View {
     @Environment(ModelManagerModel.self) var modelManager
-    
+
     let modelAPI: ModelAPIDescriptor
     let hfModel: HFModel
 
@@ -17,7 +17,7 @@ struct HFModelItemView: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 8) {
-            
+
             modelItemView
 
             modelFileListView
@@ -52,12 +52,12 @@ struct HFModelItemView: View {
                 .help(hfModel.repoId)
 
             Spacer()
-            
+
             Text(hfModel.createdAt.toFormatted(style: .short))
                 .lineLimit(1)
                 .font(.subheadline)
                 .foregroundColor(.secondary)
-            
+
             if let totalSize = hfModel.totalSize {
                 Label(FileSizeFormatter.string(from: Int64(totalSize)),
                 systemImage: "internaldrive").font(.subheadline)
@@ -66,7 +66,7 @@ struct HFModelItemView: View {
             HFModelDownloadView(modelAPI: modelAPI, hfModel: hfModel)
         }
     }
-    
+
     @ViewBuilder
     private var modelFileListView: some View {
         ScrollView(.horizontal, showsIndicators: false) {
@@ -102,8 +102,10 @@ struct HFModelItemView: View {
             }
             .offset(x: scrollOffset, y: 0)
             .onPreferenceChange(HStackWidthPreferenceKey.self) { width in
-                if width.isFinite && width > 0 {
-                    textWidth = width
+                Task { @MainActor in
+                    if width.isFinite && width > 0 {
+                        textWidth = width
+                    }
                 }
             }
         }
@@ -116,7 +118,7 @@ struct HFModelItemView: View {
             }
         }
     }
-    
+
     @ViewBuilder
     private var modelProgressView: some View {
         if let progress = hfModel.progress {
@@ -169,7 +171,7 @@ struct HFModelItemView: View {
             }
         }
     }
-    
+
     @ViewBuilder
     private var downloadStatusView: some View {
         ScrollView {
@@ -209,7 +211,7 @@ struct HFModelItemView: View {
             }
         }
     }
-    
+
     private func getExpectedFilesForRepo() -> [String] {
         var files: [String] = []
 
@@ -295,4 +297,3 @@ struct FileSizeFormatter {
         return formatter.string(fromByteCount: count)
     }
 }
-

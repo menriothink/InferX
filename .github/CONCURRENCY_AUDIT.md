@@ -34,6 +34,62 @@
 
 **Status**: ✅ **Fixed**
 
+### 2. `HFModelItemView.swift` ✅
+
+**Location**: Line 106
+
+**Problem**:
+
+```swift
+// ❌ Original code
+.onPreferenceChange(HStackWidthPreferenceKey.self) { width in
+    if width.isFinite && width > 0 {
+        textWidth = width  // Concurrency error
+    }
+}
+```
+
+**Fix**:
+
+```swift
+// ✅ Fixed code
+.onPreferenceChange(HStackWidthPreferenceKey.self) { width in
+    Task { @MainActor in
+        if width.isFinite && width > 0 {
+            textWidth = width
+        }
+    }
+}
+```
+
+**Status**: ✅ **Fixed**
+
+### 3. `MLXCommunityItemView.swift` ✅
+
+**Location**: Line 151
+
+**Problem**:
+
+```swift
+// ❌ Original code
+.onPreferenceChange(HStackWidthPreferenceKey.self) { width in
+    textWidth = width  // Concurrency error
+}
+```
+
+**Fix**:
+
+```swift
+// ✅ Fixed code
+.onPreferenceChange(HStackWidthPreferenceKey.self) { width in
+    Task { @MainActor in
+        textWidth = width
+    }
+}
+```
+
+**Status**: ✅ **Fixed**
+
 ---
 
 ## 🔍 Audit Results
@@ -326,7 +382,7 @@ nonisolated(unsafe) var data: String
 | Category | Count | Status |
 |----------|-------|--------|
 | **Files Checked** | 300+ | ✅ Complete |
-| **Issues Found** | 1 | ✅ Fixed |
+| **Issues Found** | 3 | ✅ All Fixed |
 | **Safe Patterns** | 9 | ✅ Verified |
 | **Attention Needed** | 0 | ✅ None |
 
@@ -336,7 +392,7 @@ nonisolated(unsafe) var data: String
 
 ### Project Concurrency Safety Status: **Excellent** 🎉
 
-1. ✅ **Only issue fixed** (`UltramanNavigationSplitView.swift`)
+1. ✅ **All issues fixed** (3 files: `UltramanNavigationSplitView.swift`, `HFModelItemView.swift`, `MLXCommunityItemView.swift`)
 2. ✅ **Other code follows best practices**
 3. ✅ **Correct use of SwiftUI reactive patterns**
 4. ✅ **Ready for Swift 6 strict concurrency mode**
