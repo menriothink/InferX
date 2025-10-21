@@ -8,7 +8,7 @@ on:
 jobs:
   create-release:
     name: Create Release
-    runs-on: macos-14
+    runs-on: macos-26
     permissions:
       contents: write
 
@@ -36,7 +36,13 @@ jobs:
         echo "🔧 Add private key to: https://github.com/${{ github.repository }}/settings/secrets/actions"
 
     - name: Select Xcode version
-      run: sudo xcode-select -s /Applications/Xcode_16.2.app/Contents/Developer
+      run: |
+        echo "Running on macos-26; using Xcode 26"
+        if [ -d "/Applications/Xcode_26.app" ]; then
+          echo "Using /Applications/Xcode_26.app"
+          sudo xcode-select -s /Applications/Xcode_26.app/Contents/Developer
+        fi
+        xcodebuild -version
 
     - name: Get version from tag
       id: get_version
@@ -66,10 +72,10 @@ jobs:
       run: |
         xcodebuild -resolvePackageDependencies \
           -project InferX.xcodeproj \
-          -scheme InferX
+          -scheme InferX-release
         echo "✅ Packages resolved"
         echo "🛈 Dump build settings (macro related)"
-        xcodebuild -showBuildSettings -project InferX.xcodeproj -scheme InferX | grep -i -E 'MACRO|SWIFT_VERSION' || true
+        xcodebuild -showBuildSettings -project InferX.xcodeproj -scheme InferX-release | grep -i -E 'MACRO|SWIFT_VERSION' || true
 
     - name: Build Release (skip clean to avoid macro issues)
       id: build_release
@@ -83,7 +89,7 @@ jobs:
         # Build directly without archive (archive implicitly cleans and triggers macro error)
         xcodebuild build \
           -project InferX.xcodeproj \
-          -scheme InferX \
+          -scheme InferX-release \
           -configuration Release \
           -destination 'generic/platform=macOS' \
           -derivedDataPath ./build/DerivedData \
