@@ -19,9 +19,17 @@ jobs:
         fetch-depth: 0
 
     - name: Setup SSH for private repositories
+      if: ${{ secrets.SSH_PRIVATE_KEY != '' }}
       uses: webfactory/ssh-agent@v0.9.0
       with:
         ssh-private-key: ${{ secrets.SSH_PRIVATE_KEY }}
+
+    - name: Warning - SSH Key Not Configured
+      if: ${{ secrets.SSH_PRIVATE_KEY == '' }}
+      run: |
+        echo "⚠️  WARNING: SSH_PRIVATE_KEY secret is not configured!"
+        echo "📖 See .github/SSH_SETUP.md for configuration instructions"
+        echo "🔧 Add private key to: https://github.com/${{ github.repository }}/settings/secrets/actions"
 
     - name: Select Xcode version
       run: sudo xcode-select -s /Applications/Xcode_16.2.app/Contents/Developer

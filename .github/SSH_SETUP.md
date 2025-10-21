@@ -1,6 +1,58 @@
 # GitHub Actions SSH Setup Guide
 
-This guide explains how to configure SSH access for GitHub Actions to clone private Swift package dependencies.
+> **⚠️ URGENT: If you see "ssh-private-key argument is empty" error**
+>
+> The SSH_PRIVATE_KEY secret is not configured in your repository. Follow the Quick Setup below immediately.
+
+## Quick Setup (5 minutes)
+
+If you're seeing build failures, follow these steps right now:
+
+### 1. Generate SSH Key (Local Machine)
+
+```bash
+ssh-keygen -t ed25519 -C "github-actions@inferx" -f ~/.ssh/id_ed25519_github_actions
+# Press Enter twice (no passphrase)
+```
+
+### 2. Add Public Key to Your GitHub Account
+
+```bash
+# Copy public key
+cat ~/.ssh/id_ed25519_github_actions.pub
+```
+
+Then:
+- Go to: https://github.com/settings/keys
+- Click "**New SSH key**"
+- Title: `GitHub Actions - InferX`
+- Paste the public key
+- Click "**Add SSH key**"
+
+### 3. Add Private Key to Repository Secrets
+
+```bash
+# Copy private key (entire content including headers)
+cat ~/.ssh/id_ed25519_github_actions
+```
+
+Then:
+- Go to: https://github.com/menriothink/InferX/settings/secrets/actions
+- Click "**New repository secret**"
+- Name: `SSH_PRIVATE_KEY` (exactly this name!)
+- Paste the **entire private key** including:
+  ```
+  -----BEGIN OPENSSH PRIVATE KEY-----
+  ... key content ...
+  -----END OPENSSH PRIVATE KEY-----
+  ```
+- Click "**Add secret**"
+
+### 4. Re-run the Failed Workflow
+
+Go to Actions tab and click "Re-run all jobs"
+
+---
 
 ## Why SSH Configuration is Needed
 
