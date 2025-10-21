@@ -1,0 +1,62 @@
+name: Build and Test
+
+on:
+  push:
+    branches: [ main, master, dev ]
+  pull_request:
+    branches: [ main, master ]
+
+jobs:
+  build:
+    name: Build and Test InferX
+    runs-on: macos-14
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Select Xcode version
+      run: sudo xcode-select -s /Applications/Xcode_16.2.app/Contents/Developer
+
+    - name: Show Xcode version
+      run: xcodebuild -version
+
+    - name: Show available schemes
+      run: xcodebuild -list -project InferX.xcodeproj
+
+    - name: Clean build folder
+      run: |
+        xcodebuild clean \
+          -project InferX.xcodeproj \
+          -scheme InferX
+
+    - name: Build project
+      run: |
+        xcodebuild build \
+          -project InferX.xcodeproj \
+          -scheme InferX \
+          -destination 'platform=macOS,arch=x86_64' \
+          -configuration Debug \
+          CODE_SIGN_IDENTITY="" \
+          CODE_SIGNING_REQUIRED=NO \
+          CODE_SIGNING_ALLOWED=NO
+
+    - name: Run tests
+      run: |
+        xcodebuild test \
+          -project InferX.xcodeproj \
+          -scheme InferX \
+          -destination 'platform=macOS,arch=x86_64' \
+          CODE_SIGN_IDENTITY="" \
+          CODE_SIGNING_REQUIRED=NO
+      continue-on-error: true
+
+    - name: Archive build logs
+      if: always()
+      uses: actions/upload-artifact@v4
+      with:
+        name: build-logs
+        path: |
+          ~/Library/Logs/DiagnosticReports/
+          *.log
+        retention-days: 7

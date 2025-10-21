@@ -1,0 +1,114 @@
+name: Release Build
+
+on:
+  push:
+    tags:
+      - 'v*.*.*'
+
+jobs:
+  create-release:
+    name: Create Release
+    runs-on: macos-14
+    permissions:
+      contents: write
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      with:
+        fetch-depth: 0
+
+    - name: Select Xcode version
+      run: sudo xcode-select -s /Applications/Xcode_16.2.app/Contents/Developer
+
+    - name: Get version from tag
+      id: get_version
+      run: echo "VERSION=${GITHUB_REF#refs/tags/}" >> $GITHUB_OUTPUT
+
+    - name: Build Release
+      run: |
+        xcodebuild archive \
+          -project InferX.xcodeproj \
+          -scheme InferX \
+          -configuration Release \
+          -archivePath ./build/InferX.xcarchive \
+          -destination 'platform=macOS,arch=arm64' \
+          CODE_SIGN_IDENTITY="" \
+          CODE_SIGNING_REQUIRED=NO \
+          CODE_SIGNING_ALLOWED=NO \
+          ONLY_ACTIVE_ARCH=NO
+
+    - name: Create DMG
+      run: |
+        # Create a disk image
+        mkdir -p ./build/dmg
+        cp -R ./build/InferX.xcarchive/Products/Applications/InferX.app ./build/dmg/
+
+        # Create symlink to Applications folder
+        ln -s /Applications ./build/dmg/Applications
+
+        # Create DMG
+        hdiutil create -volname "InferX" \
+          -srcfolder ./build/dmg \
+          -ov -format UDZO \
+          ./build/InferX-${{ steps.get_version.outputs.VERSION }}.dmg
+
+    - name: Generate Release Notes
+      id: release_notes
+      run: |
+        if [ -f "RELEASE_NOTES_${{ steps.get_version.outputs.VERSION }}.md" ]; then
+          cat "RELEASE_NOTES_${{ steps.get_version.outputs.VERSION }}.md" > release_notes.md
+        else
+          cat > release_notes.md << 'EOF'
+        ## What's New in ${{ steps.get_version.outputs.VERSION }}
+
+        ### Features
+        - Multi-model support (Ollama, Gemini, HuggingFace, MLX)
+        - Streaming conversations with real-time responses
+        - Full Markdown rendering with code highlighting
+        - Math formulas support (KaTeX)
+        - Mermaid chart visualization
+        - File attachments support
+        - Local data persistence with SwiftData
+
+        ### Technical Highlights
+        - Built with Swift 6.0 and SwiftUI
+        - MVVM architecture with Actor concurrency
+        - Incremental Markdown rendering
+        - Apple Silicon optimization (MLX)
+
+        ## Installation
+
+        1. Download `InferX-${{ steps.get_version.outputs.VERSION }}.dmg`
+        2. Open the DMG file
+        3. Drag InferX.app to Applications folder
+        4. Launch InferX and configure your model APIs
+
+        ## System Requirements
+        - macOS 15.0 (Sequoia) or later
+        - Apple Silicon (M1/M2/M3) or Intel processor
+
+        ## Full Documentation
+        See [README.md](https://github.com/${{ github.repository }}/blob/master/README.md) for complete documentation.
+        EOF
+        fi
+
+    - name: Create GitHub Release
+      uses: softprops/action-gh-release@v2
+      with:
+        name: InferX ${{ steps.get_version.outputs.VERSION }}
+        body_path: release_notes.md
+        draft: false
+        prerelease: false
+        files: |
+          ./build/InferX-${{ steps.get_version.outputs.VERSION }}.dmg
+        generate_release_notes: true
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+    - name: Upload build artifacts
+      uses: actions/upload-artifact@v4
+      with:
+        name: InferX-${{ steps.get_version.outputs.VERSION }}
+        path: ./build/InferX-${{ steps.get_version.outputs.VERSION }}.dmg
+        retention-days: 30
