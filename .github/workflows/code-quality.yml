@@ -9,7 +9,7 @@ on:
 jobs:
   swiftlint:
     name: SwiftLint
-    runs-on: macos-14
+    runs-on: macos-26
 
     steps:
     - name: Checkout code
@@ -24,7 +24,7 @@ jobs:
 
   analyze:
     name: Static Analysis
-    runs-on: macos-14
+    runs-on: macos-26
 
     steps:
     - name: Checkout code
@@ -47,19 +47,19 @@ jobs:
         echo "📖 See .github/SSH_SETUP.md for setup instructions"
 
     - name: Select Xcode version
-      run: sudo xcode-select -s /Applications/Xcode_16.2.app/Contents/Developer
+      run: sudo xcode-select -s /Applications/Xcode_26.app/Contents/Developer
 
     - name: Resolve Package Dependencies
       run: |
         xcodebuild -resolvePackageDependencies \
           -project InferX.xcodeproj \
-          -scheme InferX
+          -scheme InferX-release
 
     - name: Run Static Analyzer
       run: |
         xcodebuild analyze \
           -project InferX.xcodeproj \
-          -scheme InferX \
+          -scheme InferX-release \
           -destination 'platform=macOS' \
           CODE_SIGN_IDENTITY="" \
           CODE_SIGNING_REQUIRED=NO
