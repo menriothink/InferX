@@ -47,33 +47,59 @@ jobs:
         xcodebuild -resolvePackageDependencies \
           -project InferX.xcodeproj \
           -scheme InferX
+        echo "✅ Packages resolved"
+        echo "🛈 Dump build settings (macro related)"
+        xcodebuild -showBuildSettings -project InferX.xcodeproj -scheme InferX | grep -i -E 'MACRO|SWIFT_VERSION' || true
 
-    - name: Build Release
+    - name: Build Release (with Macros enabled)
+      id: build_release
       run: |
+        set -eo pipefail
+        echo "🛠 First attempt (enable macros)"
         xcodebuild archive \
           -project InferX.xcodeproj \
           -scheme InferX \
           -configuration Release \
           -archivePath ./build/InferX.xcarchive \
-          -destination 'platform=macOS' \
+          -destination 'generic/platform=macOS' \
           CODE_SIGN_IDENTITY="" \
           CODE_SIGNING_REQUIRED=NO \
-          CODE_SIGNING_ALLOWED=NO
+          CODE_SIGNING_ALLOWED=NO \
+          OTHER_SWIFT_FLAGS="-enable-experimental-feature Macros" \
+          | tee build_attempt_1.log || export BUILD_FAILED=1
+
+        if [ "${BUILD_FAILED}" = "1" ]; then
+          echo "⚠️ First attempt failed. Retrying with -skipMacroValidation"
+          xcodebuild archive \
+            -project InferX.xcodeproj \
+            -scheme InferX \
+            -configuration Release \
+            -archivePath ./build/InferX.xcarchive \
+            -destination 'generic/platform=macOS' \
+            CODE_SIGN_IDENTITY="" \
+            CODE_SIGNING_REQUIRED=NO \
+            CODE_SIGNING_ALLOWED=NO \
+            OTHER_SWIFT_FLAGS="-enable-experimental-feature Macros" \
+            -skipMacroValidation \
+            | tee build_attempt_retry.log
+        fi
+
+    - name: Upload build logs (always)
+      if: always()
+      uses: actions/upload-artifact@v4
+      with:
+        name: release-build-logs
+        path: |
+          build_attempt_1.log
+          build_attempt_retry.log
+        retention-days: 14
 
     - name: Create DMG
       run: |
-        # Create a disk image
         mkdir -p ./build/dmg
         cp -R ./build/InferX.xcarchive/Products/Applications/InferX.app ./build/dmg/
-
-        # Create symlink to Applications folder
         ln -s /Applications ./build/dmg/Applications
-
-        # Create DMG
-        hdiutil create -volname "InferX" \
-          -srcfolder ./build/dmg \
-          -ov -format UDZO \
-          ./build/InferX-${{ steps.get_version.outputs.VERSION }}.dmg
+        hdiutil create -volname "InferX" -srcfolder ./build/dmg -ov -format UDZO ./build/InferX-${{ steps.get_version.outputs.VERSION }}.dmg
 
     - name: Generate Release Notes
       id: release_notes
@@ -124,7 +150,6 @@ jobs:
         prerelease: false
         files: |
           ./build/InferX-${{ steps.get_version.outputs.VERSION }}.dmg
-        generate_release_notes: true
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
