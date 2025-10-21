@@ -9,24 +9,26 @@ on:
 jobs:
   build:
     name: Build and Test InferX
-    runs-on: macos-14
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [macos-26, macos-latest]
+
+    env:
+      LLVM_PROFILE_FILE: ${{ runner.temp }}/default.profraw
 
     steps:
     - name: Checkout code
       uses: actions/checkout@v4
 
     - name: Setup SSH for private repositories
-      if: env.SSH_PRIVATE_KEY != ''
+      if: ${{ secrets.SSH_PRIVATE_KEY != '' }}
       uses: webfactory/ssh-agent@v0.9.0
       with:
         ssh-private-key: ${{ secrets.SSH_PRIVATE_KEY }}
-      env:
-        SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
 
     - name: Warning - SSH Key Not Configured
-      if: env.SSH_PRIVATE_KEY == ''
-      env:
-        SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
+      if: ${{ secrets.SSH_PRIVATE_KEY == '' }}
       run: |
         echo "⚠️  WARNING: SSH_PRIVATE_KEY secret is not configured!"
         echo "📖 This project uses SSH URLs for Swift Package dependencies."
@@ -40,16 +42,31 @@ jobs:
         echo ""
         echo "⚠️  Build may fail due to missing SSH access to dependencies!"
 
-    - name: Select Xcode version
-      run: sudo xcode-select -s /Applications/Xcode_16.2.app/Contents/Developer
+    - name: Select Xcode 26 on macos-26
+      if: ${{ matrix.os == 'macos-26' }}
+      run: |
+        echo "Running on macos-26; using Xcode 26 if available"
+        if [ -d "/Applications/Xcode_26.app" ]; then
+          echo "Using /Applications/Xcode_26.app"
+          export DEVELOPER_DIR=/Applications/Xcode_26.app/Contents/Developer
+        fi
+        xcodebuild -version || true
 
-    - name: Show Xcode version
-      run: xcodebuild -version
+    - name: Select Xcode 16.2 on other macOS
+      if: ${{ matrix.os != 'macos-26' }}
+      run: |
+        sudo xcode-select -s /Applications/Xcode_16.2.app/Contents/Developer || true
+        xcodebuild -version || true
+
+    - name: Show runner info
+      run: |
+        echo "RUNNER: $RUNNER_OS / ${RUNNER_NAME:-unknown}"
+        uname -a
+        arch
 
     - name: Show available schemes
-      run: xcodebuild -list -project InferX.xcodeproj
+      run: xcodebuild -list -project InferX/InferX.xcodeproj
 
-    # Cache Swift Package Manager dependencies
     - name: Cache SPM dependencies
       uses: actions/cache@v4
       with:
@@ -60,25 +77,24 @@ jobs:
         restore-keys: |
           ${{ runner.os }}-spm-
 
-    # Cache Xcode DerivedData for faster builds
     - name: Cache DerivedData
       uses: actions/cache@v4
       with:
         path: ~/Library/Developer/Xcode/DerivedData
-        key: ${{ runner.os }}-deriveddata-${{ github.sha }}
+        key: ${{ runner.os }}-deriveddata-${{ hashFiles('**/Package.resolved') }}
         restore-keys: |
           ${{ runner.os }}-deriveddata-
 
     - name: Resolve Package Dependencies
       run: |
         xcodebuild -resolvePackageDependencies \
-          -project InferX.xcodeproj \
+          -project InferX/InferX.xcodeproj \
           -scheme InferX
 
     - name: Build project (skip clean to avoid macro issues)
       run: |
         xcodebuild build \
-          -project InferX.xcodeproj \
+          -project InferX/InferX.xcodeproj \
           -scheme InferX \
           -destination 'generic/platform=macOS' \
           -configuration Debug \
@@ -91,9 +107,9 @@ jobs:
     - name: Run tests
       run: |
         xcodebuild test \
-          -project InferX.xcodeproj \
+          -project InferX/InferX.xcodeproj \
           -scheme InferX \
-          -destination 'platform=macOS,name=Any Mac' \
+          -destination 'generic/platform=macOS' \
           CODE_SIGN_IDENTITY="" \
           CODE_SIGNING_REQUIRED=NO \
           -skipMacroValidation \
