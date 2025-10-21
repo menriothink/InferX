@@ -56,16 +56,16 @@ extension URL {
         let destComponents = self.standardized.resolvingSymlinksInPath().pathComponents
         let baseComponents = workBase.standardized.resolvingSymlinksInPath().pathComponents
 
-        var i = 0
-        while i < destComponents.count,
-            i < baseComponents.count,
-            destComponents[i] == baseComponents[i]
+        var index = 0
+        while index < destComponents.count,
+              index < baseComponents.count,
+            destComponents[index] == baseComponents[index]
         {
-            i += 1
+            index += 1
         }
 
-        var relComponents = Array(repeating: "..", count: baseComponents.count - i)
-        relComponents.append(contentsOf: destComponents[i...])
+        var relComponents = Array(repeating: "..", count: baseComponents.count - index)
+        relComponents.append(contentsOf: destComponents[index...])
         return relComponents.joined(separator: "/")
     }
 }

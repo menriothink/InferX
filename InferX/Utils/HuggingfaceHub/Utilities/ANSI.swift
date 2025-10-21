@@ -14,26 +14,26 @@ public class ANSI {
     private static let reset = "\u{001B}[0m"
     private static let yellow = "\u{001B}[33m"
 
-    public static func bold(_ s: String) -> String {
-        format(s, with: bold)
+    public static func bold(_ str: String) -> String {
+        format(str, with: bold)
     }
 
-    public static func gray(_ s: String) -> String {
-        format(s, with: gray)
+    public static func gray(_ str: String) -> String {
+        format(str, with: gray)
     }
 
-    public static func red(_ s: String) -> String {
-        format(s, with: bold + red)
+    public static func red(_ str: String) -> String {
+        format(str, with: bold + red)
     }
 
-    public static func yellow(_ s: String) -> String {
-        format(s, with: yellow)
+    public static func yellow(_ str: String) -> String {
+        format(str, with: yellow)
     }
 
-    private static func format(_ s: String, with code: String) -> String {
+    private static func format(_ str: String, with code: String) -> String {
         if ProcessInfo.processInfo.environment["NO_COLOR"] != nil {
-            return s
+            return str
         }
-        return "\(code)\(s)\(reset)"
+        return "\(code)\(str)\(reset)"
     }
 }

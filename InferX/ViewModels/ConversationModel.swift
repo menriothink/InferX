@@ -22,7 +22,7 @@ class ConversationModel: @unchecked Sendable {
 
     var filteredConversations: [Conversation] = []
 
-    private var detailModels: [Conversation.ID : ConversationDetailModel] = [:]
+    private var detailModels: [Conversation.ID: ConversationDetailModel] = [:]
 
     var includeMessageContent = false
     var searchText: String = ""
@@ -120,7 +120,10 @@ class ConversationModel: @unchecked Sendable {
                         }
                     } catch {
                         timestampedLogger(
-                            "filterConversationFromMessages failed for searchKey from conversation: \(searchKey), \(conversationID)",
+                            """
+                            filterConversationFromMessages failed for searchKey 
+                            from conversation: \(searchKey), \(conversationID)
+                            """,
                             level: .debug
                         )
                         return (false, conversationID)

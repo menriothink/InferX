@@ -78,8 +78,6 @@ class CacheManager {
 
         let (repoType, repoId) = try Self.parseRepo(repoURL)
 
-        var blobStats = [URL: [FileAttributeKey: Any]]()
-
         let snapshotsPath = repoURL.appendingPathComponent("snapshots")
 
         guard snapshotsPath.isDirectory() else {
@@ -87,7 +85,7 @@ class CacheManager {
         }
 
         var refsByHash = try scanRefsByHash(repoURL)
-
+        var blobStats = [URL: [FileAttributeKey: Any]]()
         var cachedRevisions = Set<CachedRevisionInfo>()
 
         let snapshotURLs = try fileManager.contentsOfDirectory(
@@ -101,101 +99,29 @@ class CacheManager {
                 continue
             }
 
-            if revisionURL.isFile() {
-                throw CorruptedError.revisionNotDirectory(revisionURL)
-            }
-
-            var cachedFiles = Set<CachedFileInfo>()
-
-            if let enumerator = fileManager.enumerator(
-                at: revisionURL,
-                includingPropertiesForKeys: nil,
-                options: [.skipsHiddenFiles]
-            ) {
-                while let fileURL = enumerator.nextObject() as? URL {
-                    if fileURL.isDirectory() {
-                        continue
-                    }
-
-                    let blobURL = fileURL.resolvingSymlinksInPath()
-                    guard blobURL.exists() else {
-                        throw CorruptedError.missingBlob(blobURL)
-                    }
-
-                    if blobStats[blobURL] == nil {
-                        blobStats[blobURL] = try fileManager.attributesOfItem(atPath: blobURL.path)
-                    }
-                    
-                    let creationDate = (blobStats[blobURL]?[.creationDate] as? Date)?.timeIntervalSince1970 ?? 0
-                    let modificationDate = (blobStats[blobURL]?[.modificationDate] as? Date)?.timeIntervalSince1970 ?? 0
-
-                    cachedFiles.insert(
-                        CachedFileInfo(
-                            fileName: fileURL.lastPathComponent,
-                            filePath: fileURL,
-                            blobPath: blobURL,
-                            sizeOnDisk: blobStats[blobURL]?[.size] as? Int ?? 0,
-                            blobLastAccessed: creationDate,
-                            blobLastModified: modificationDate
-                        )
-                    )
-                }
-            }
-
-            let revisionLastModified: TimeInterval =
-                if cachedFiles.isEmpty {
-                    if let attributes = try? fileManager.attributesOfItem(atPath: revisionURL.path),
-                        let modDate = attributes[.modificationDate] as? Date
-                    {
-                        modDate.timeIntervalSince1970
-                    } else {
-                        0
-                    }
-                } else {
-                    cachedFiles.map(\.blobLastModified).max() ?? 0
-                }
-
-            cachedRevisions.insert(
-                CachedRevisionInfo(
-                    commitHash: revisionURL.lastPathComponent,
-                    snapshotPath: revisionURL,
-                    sizeOnDisk: cachedFiles.reduce(0) { $0 + $1.sizeOnDisk },
-                    files: cachedFiles,
-                    refs: refsByHash.removeValue(forKey: revisionURL.lastPathComponent) ?? [],
-                    lastModified: revisionLastModified
-                )
+            let revisionInfo = try scanRevision(
+                revisionURL,
+                refsByHash: &refsByHash,
+                blobStats: &blobStats
             )
+            cachedRevisions.insert(revisionInfo)
         }
 
         guard refsByHash.isEmpty else {
             throw CorruptedError.refersToMissingCommitHashes(refsByHash, repoURL)
         }
 
-        let (repoLastAccessed, repoLastModified): (TimeInterval, TimeInterval)
-        if !blobStats.isEmpty {
-            repoLastAccessed =
-                blobStats.values.compactMap { $0[.creationDate] as? Date }.map(\.timeIntervalSince1970).max() ?? 0
-            repoLastModified =
-                blobStats.values.compactMap { $0[.modificationDate] as? Date }.map(\.timeIntervalSince1970).max() ?? 0
-        } else {
-            if let attributes = try? fileManager.attributesOfItem(atPath: repoURL.path) {
-                repoLastAccessed = (attributes[.creationDate] as? Date)?.timeIntervalSince1970 ?? 0
-                repoLastModified = (attributes[.modificationDate] as? Date)?.timeIntervalSince1970 ?? 0
-            } else {
-                repoLastAccessed = 0
-                repoLastModified = 0
-            }
-        }
+        let repoStats = try calculateRepoStats(from: blobStats, at: repoURL)
 
         return CachedRepoInfo(
             repoId: repoId,
             repoType: repoType,
             repoPath: repoURL,
-            sizeOnDisk: blobStats.values.reduce(0) { $0 + Int(($1[.size] as? Int64) ?? 0) },
+            sizeOnDisk: repoStats.sizeOnDisk,
             nbFiles: blobStats.count,
             revisions: cachedRevisions,
-            lastAccessed: repoLastAccessed,
-            lastModified: repoLastModified
+            lastAccessed: repoStats.lastAccessed,
+            lastModified: repoStats.lastModified
         )
     }
 
@@ -220,6 +146,127 @@ class CacheManager {
         return (repoType, repoId)
     }
 }
+
+private extension CacheManager {
+    func scanRevision(
+        _ revisionURL: URL,
+        refsByHash: inout [String: Set<String>],
+        blobStats: inout [URL: [FileAttributeKey: Any]]
+    ) throws -> CachedRevisionInfo {
+        if revisionURL.isFile() {
+            throw CorruptedError.revisionNotDirectory(revisionURL)
+        }
+
+        let cachedFiles = try scanFilesInRevision(revisionURL, blobStats: &blobStats)
+        let revisionLastModified = calculateRevisionLastModified(for: revisionURL, basedOn: cachedFiles)
+        let commitHash = revisionURL.lastPathComponent
+        
+        return CachedRevisionInfo(
+            commitHash: commitHash,
+            snapshotPath: revisionURL,
+            sizeOnDisk: cachedFiles.reduce(0) { $0 + $1.sizeOnDisk },
+            files: cachedFiles,
+            refs: refsByHash.removeValue(forKey: commitHash) ?? [],
+            lastModified: revisionLastModified
+        )
+    }
+
+    func scanFilesInRevision(
+        _ revisionURL: URL,
+        blobStats: inout [URL: [FileAttributeKey: Any]]
+    ) throws -> Set<CachedFileInfo> {
+        var cachedFiles = Set<CachedFileInfo>()
+
+        guard let enumerator = fileManager.enumerator(
+            at: revisionURL,
+            includingPropertiesForKeys: nil,
+            options: [.skipsHiddenFiles]
+        ) else {
+            return cachedFiles
+        }
+        
+        for case let fileURL as URL in enumerator {
+            if fileURL.isDirectory() {
+                continue
+            }
+
+            let blobURL = fileURL.resolvingSymlinksInPath()
+            guard blobURL.exists() else {
+                throw CorruptedError.missingBlob(blobURL)
+            }
+
+            if blobStats[blobURL] == nil {
+                blobStats[blobURL] = try fileManager.attributesOfItem(atPath: blobURL.path)
+            }
+            
+            let attributes = blobStats[blobURL]
+            let creationDate = (attributes?[.creationDate] as? Date)?.timeIntervalSince1970 ?? 0
+            let modificationDate = (attributes?[.modificationDate] as? Date)?.timeIntervalSince1970 ?? 0
+            let sizeOnDisk = attributes?[.size] as? Int ?? 0
+
+            cachedFiles.insert(
+                CachedFileInfo(
+                    fileName: fileURL.lastPathComponent,
+                    filePath: fileURL,
+                    blobPath: blobURL,
+                    sizeOnDisk: sizeOnDisk,
+                    blobLastAccessed: creationDate,
+                    blobLastModified: modificationDate
+                )
+            )
+        }
+        
+        return cachedFiles
+    }
+
+    func calculateRevisionLastModified(
+        for revisionURL: URL,
+        basedOn cachedFiles: Set<CachedFileInfo>
+    ) -> TimeInterval {
+        if cachedFiles.isEmpty {
+            if let attributes = try? fileManager.attributesOfItem(atPath: revisionURL.path),
+               let modDate = attributes[.modificationDate] as? Date {
+                return modDate.timeIntervalSince1970
+            } else {
+                return 0
+            }
+        } else {
+            return cachedFiles.map(\.blobLastModified).max() ?? 0
+        }
+    }
+
+    func calculateRepoStats(
+        from blobStats: [URL: [FileAttributeKey: Any]],
+        at repoURL: URL
+    ) throws -> (sizeOnDisk: Int, lastAccessed: TimeInterval, lastModified: TimeInterval) {
+        let sizeOnDisk = blobStats.values.reduce(0) { $0 + Int(($1[.size] as? Int64) ?? 0) }
+
+        let lastAccessed: TimeInterval
+        let lastModified: TimeInterval
+
+        if !blobStats.isEmpty {
+            lastAccessed = blobStats.values
+                .compactMap { $0[.creationDate] as? Date }
+                .map(\.timeIntervalSince1970)
+                .max() ?? 0
+            lastModified = blobStats.values
+                .compactMap { $0[.modificationDate] as? Date }
+                .map(\.timeIntervalSince1970)
+                .max() ?? 0
+        } else {
+            if let attributes = try? fileManager.attributesOfItem(atPath: repoURL.path) {
+                lastAccessed = (attributes[.creationDate] as? Date)?.timeIntervalSince1970 ?? 0
+                lastModified = (attributes[.modificationDate] as? Date)?.timeIntervalSince1970 ?? 0
+            } else {
+                lastAccessed = 0
+                lastModified = 0
+            }
+        }
+        
+        return (sizeOnDisk, lastAccessed, lastModified)
+    }
+}
+
 
 extension CacheManager {
     enum Error: LocalizedError {
@@ -349,15 +396,15 @@ extension CacheManager {
             do {
                 let freedSpace = try cleanupRepoKeepLatest(repoInfo.repoPath)
                 totalFreedSpace += freedSpace
-                print("✅ 清理 \(repoInfo.repoId) 成功，释放空间: \(ByteCountFormatter.string(fromByteCount: freedSpace, countStyle: .file))")
+                print("✅ Successfully cleaned \(repoInfo.repoId), freed space: \(ByteCountFormatter.string(fromByteCount: freedSpace, countStyle: .file))")
             } catch {
-                errors.append(error as! CacheManager.Error)
-                print("❌ 清理 \(repoInfo.repoId) 失败: \(error.localizedDescription)")
+                errors.append(error as! CacheManager.Error) // Assuming it's a CacheManager.Error for consistent error handling
+                print("❌ Failed to clean \(repoInfo.repoId): \(error.localizedDescription)")
             }
         }
 
         if !errors.isEmpty {
-            print("⚠️ 部分仓库清理失败，请检查权限或文件状态")
+            print("⚠️ Some repositories failed to clean up. Please check permissions or file status.")
         }
 
         return totalFreedSpace
