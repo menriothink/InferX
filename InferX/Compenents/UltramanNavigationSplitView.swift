@@ -125,14 +125,10 @@ struct UltramanNavigationSplitView<Sidebar: View, Detail: View>: View {
                     detail()
                         .frame(maxWidth: .infinity, maxHeight: .infinity)
                         .onPreferenceChange(UltramanNavigationTitleKey.self) { newTitle in
-                            Task { @MainActor in
-                                navigationTitle = newTitle
-                            }
+                            navigationTitle = newTitle
                         }
                         .onPreferenceChange(UltramanNavigationToolbarKey.self) { newItems in
-                            Task { @MainActor in
-                                toolbarItems = newItems
-                            }
+                            toolbarItems = newItems
                         }
                 }
 

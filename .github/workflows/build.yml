@@ -12,7 +12,7 @@ jobs:
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
-        os: [macos-26, macos-latest]
+        os: [macos-26]
 
     steps:
     - name: Checkout code
@@ -54,12 +54,6 @@ jobs:
           echo "Using /Applications/Xcode_26.app"
           sudo xcode-select -s /Applications/Xcode_26.app/Contents/Developer
         fi
-        xcodebuild -version
-
-    - name: Select Xcode 16.2 on other macOS
-      if: matrix.os != 'macos-26'
-      run: |
-        sudo xcode-select -s /Applications/Xcode_16.2.app/Contents/Developer || true
         xcodebuild -version
 
     - name: Show Xcode version

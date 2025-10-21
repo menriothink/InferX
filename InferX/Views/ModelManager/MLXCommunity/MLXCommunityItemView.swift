@@ -148,9 +148,7 @@ struct MLXCommunityItemView: View {
             }
             .offset(x: scrollOffset, y: 0)
             .onPreferenceChange(HStackWidthPreferenceKey.self) { width in
-                Task { @MainActor in
-                    textWidth = width
-                }
+                textWidth = width
             }
         }
         .clipped()

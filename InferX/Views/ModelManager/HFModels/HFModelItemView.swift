@@ -102,10 +102,8 @@ struct HFModelItemView: View {
             }
             .offset(x: scrollOffset, y: 0)
             .onPreferenceChange(HStackWidthPreferenceKey.self) { width in
-                Task { @MainActor in
-                    if width.isFinite && width > 0 {
-                        textWidth = width
-                    }
+                if width.isFinite && width > 0 {
+                    textWidth = width
                 }
             }
         }
