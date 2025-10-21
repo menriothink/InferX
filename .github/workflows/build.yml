@@ -15,7 +15,7 @@ jobs:
         os: [macos-26, macos-latest]
 
     env:
-      LLVM_PROFILE_FILE: ${{ runner.temp }}/default.profraw
+      LLVM_PROFILE_FILE: "${{ runner.temp }}/default.profraw"
 
     steps:
     - name: Checkout code
