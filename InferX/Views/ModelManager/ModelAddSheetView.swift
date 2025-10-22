@@ -27,7 +27,6 @@ struct ModelAddSheetView: View {
         VStack(spacing: 0) {
             headerView
 
-            // Model API Picker Section
             Form {
                 Picker("Model API", selection: $selectedAPIName) {
                     Text("Please select a Model API...").tag(nil as String?)
@@ -42,21 +41,19 @@ struct ModelAddSheetView: View {
                 .disabled(inputApiName != nil)
             }
             .formStyle(.grouped)
-            .padding(.horizontal)
             .frame(height: 60)
 
-            // Available Models Section
             VStack(alignment: .leading, spacing: 8) {
                 Text("Available Models")
                     .font(.headline)
                     .padding(.horizontal)
-                    .padding(.top, 8)
+                    .padding(.top, 20)
 
                 dynamicContentSection
                     .frame(height: 200)
+                    .padding(.horizontal)
             }
 
-            // Status Messages
             VStack {
                 if modelManager.modelAPIs.isEmpty {
                     Text("No Model APIs available, please create one.")
@@ -70,15 +67,12 @@ struct ModelAddSheetView: View {
                 }
             }
             .font(.headline)
-            .frame(width: 400)
-            .fixedSize(horizontal: true, vertical: false)
             .padding(.vertical, 8)
 
             Spacer()
 
             footerButtons
         }
-        .frame(width: 480, height: 400)
         .sheet(isPresented: $apiToConfigure) {
             ModelAPIAddSheetView { api in
                 if let api = api {
@@ -91,6 +85,7 @@ struct ModelAddSheetView: View {
                 selectedAPIName = inputApiName
             }
         }
+        .padding(10)
     }
 
     @ViewBuilder
@@ -135,14 +130,26 @@ struct ModelAddSheetView: View {
                     }
                     .frame(maxWidth: .infinity, maxHeight: .infinity)
                 } else {
-                    List(selection: $selectedModelNames) {
-                        ForEach(availableRemoteModels.sorted { $0.name < $1.name }) { model in
-                            Text(model.name)
-                                .tag(model.name)
+                    VStack {
+                        HStack {
+                            Button("Select All", action: { selectAll(availableRemoteModels) })
+                            Button("Deselect All", action: deselectAll)
+                            Spacer()
                         }
+                        .frame(height: 20)
+                        
+                        List {
+                            ForEach(availableRemoteModels.sorted { $0.name < $1.name }) { model in
+                                Toggle(isOn: self.makeBinding(for: model.name)) {
+                                    Text(model.name)
+                                }
+                                .toggleStyle(.checkbox)
+                                .padding(.horizontal, 4)
+                            }
+                        }
+                        .listStyle(.bordered(alternatesRowBackgrounds: true))
+                        .scrollContentBackground(.visible)
                     }
-                    .listStyle(.bordered(alternatesRowBackgrounds: true))
-                    .scrollContentBackground(.visible)
                 }
             } else {
                 VStack {
@@ -237,5 +244,28 @@ struct ModelAddSheetView: View {
             errorAlert = "Failed to save, " + error.localizedDescription
             print(errorAlert)
         }
+    }
+    
+    private func makeBinding(for modelName: String) -> Binding<Bool> {
+        Binding<Bool>(
+            get: {
+                self.selectedModelNames.contains(modelName)
+            },
+            set: { isSelected in
+                if isSelected {
+                    self.selectedModelNames.insert(modelName)
+                } else {
+                    self.selectedModelNames.remove(modelName)
+                }
+            }
+        )
+    }
+    
+    private func selectAll(_ availableRemoteModels: [RemoteModel]) {
+        selectedModelNames = Set(availableRemoteModels.map { $0.name })
+    }
+
+    private func deselectAll() {
+        selectedModelNames.removeAll()
     }
 }
