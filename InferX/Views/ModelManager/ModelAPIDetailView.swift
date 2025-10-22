@@ -129,10 +129,11 @@ struct ModelAPIDetailView: View {
                         VStack(alignment: .center, spacing: 4) {
                             Image(systemName: "binoculars.circle")
                             Text("MLX Community")
+                                .font(.system(size: 10))
                         }
                     }
                 }
-                .frame(width: 80)
+                .frame(width: 90)
                 
                 VStack(alignment: .center) {
                     Button(action: {
@@ -143,10 +144,11 @@ struct ModelAPIDetailView: View {
                         VStack(alignment: .center, spacing: 4) {
                             Image(systemName: "arrow.down.circle")
                             Text("Local Models")
+                                .font(.system(size: 10))
                         }
                     }
                 }
-                .frame(width: 80)
+                .frame(width: 90)
                 
             }
 
