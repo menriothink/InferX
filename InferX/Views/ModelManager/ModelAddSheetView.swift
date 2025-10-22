@@ -26,7 +26,8 @@ struct ModelAddSheetView: View {
     var body: some View {
         VStack(spacing: 0) {
             headerView
-            
+
+            // Model API Picker Section
             Form {
                 Picker("Model API", selection: $selectedAPIName) {
                     Text("Please select a Model API...").tag(nil as String?)
@@ -39,16 +40,23 @@ struct ModelAddSheetView: View {
                 }
                 .onChange(of: selectedAPIName, handleAPISelectionChange)
                 .disabled(inputApiName != nil)
-                
-                Section("Available Models") {
-                    dynamicContentSection
-                }
             }
             .formStyle(.grouped)
             .padding(.horizontal)
-            
-            Spacer()
-            
+            .frame(height: 60)
+
+            // Available Models Section
+            VStack(alignment: .leading, spacing: 8) {
+                Text("Available Models")
+                    .font(.headline)
+                    .padding(.horizontal)
+                    .padding(.top, 8)
+
+                dynamicContentSection
+                    .frame(height: 200)
+            }
+
+            // Status Messages
             VStack {
                 if modelManager.modelAPIs.isEmpty {
                     Text("No Model APIs available, please create one.")
@@ -64,10 +72,10 @@ struct ModelAddSheetView: View {
             .font(.headline)
             .frame(width: 400)
             .fixedSize(horizontal: true, vertical: false)
-            .padding(.bottom, 50)
+            .padding(.vertical, 8)
 
             Spacer()
-            
+
             footerButtons
         }
         .frame(width: 480, height: 400)
@@ -84,7 +92,7 @@ struct ModelAddSheetView: View {
             }
         }
     }
-    
+
     @ViewBuilder
     private var headerView: some View {
         HStack {
@@ -103,38 +111,53 @@ struct ModelAddSheetView: View {
     @ViewBuilder
     private var dynamicContentSection: some View {
         if isFetchingModels {
-            HStack {
+            VStack {
                 ProgressView()
                 Text("Fetching available models...").foregroundStyle(.secondary)
             }
-            .padding()
+            .frame(maxWidth: .infinity, maxHeight: .infinity)
         } else if let error = fetchError {
-            Text("Error: \(error)")
-                .foregroundStyle(.red)
-                .padding()
+            VStack {
+                Text("Error: \(error)")
+                    .foregroundStyle(.red)
+            }
+            .frame(maxWidth: .infinity, maxHeight: .infinity)
         } else if let selectedAPI = modelManager.modelAPIs.first(where: { $0.name == selectedAPIName }) {
             if let remoteModels = modelManager.remoteModels[selectedAPI.name] {
                 let availableRemoteModels = remoteModels.filter { model in
                     !(modelManager.localModels[selectedAPI.name]?.contains(where: { $0.name == model.name }) ?? false)
                 }
-                
+
                 if availableRemoteModels.isEmpty {
-                    Text("All available models have been added.")
-                        .foregroundStyle(.secondary)
+                    VStack {
+                        Text("All available models have been added.")
+                            .foregroundStyle(.secondary)
+                    }
+                    .frame(maxWidth: .infinity, maxHeight: .infinity)
                 } else {
                     List(selection: $selectedModelNames) {
                         ForEach(availableRemoteModels.sorted { $0.name < $1.name }) { model in
-                            Text(model.name).tag(model.name)
+                            Text(model.name)
+                                .tag(model.name)
                         }
                     }
-                    .listStyle(.inset)
+                    .listStyle(.bordered(alternatesRowBackgrounds: true))
+                    .scrollContentBackground(.visible)
                 }
             } else {
-                Text("Unknown error, no available models!")
-                    .foregroundStyle(.red)
-                    .font(.subheadline)
-                    .padding()
+                VStack {
+                    Text("Unknown error, no available models!")
+                        .foregroundStyle(.red)
+                        .font(.subheadline)
+                }
+                .frame(maxWidth: .infinity, maxHeight: .infinity)
             }
+        } else {
+            VStack {
+                Text("Please select a Model API above")
+                    .foregroundStyle(.secondary)
+            }
+            .frame(maxWidth: .infinity, maxHeight: .infinity)
         }
     }
 
@@ -152,16 +175,16 @@ struct ModelAddSheetView: View {
         }
         .padding()
     }
-    
+
     private func handleAPISelectionChange(oldValue: String?, newValue: String?) {
         selectedModelNames.removeAll()
         fetchError = nil
         isFetchingModels = false
-        
+
         guard let selectedAPI = modelManager.modelAPIs.first(
             where: { $0.name == newValue }
         ) else { return }
-        
+
         if modelManager.remoteModels[selectedAPI.name]?.isEmpty ?? true {
             Task {
                 await updateModels(for: selectedAPI)
@@ -172,19 +195,19 @@ struct ModelAddSheetView: View {
     private func updateModels(for modelAPI: ModelAPI) async {
         isFetchingModels = true
         fetchError = nil
-        
+
         do {
             try await modelManager.updateModelStatus(for: modelAPI.name)
         } catch(let error) {
             fetchError = error.localizedDescription
         }
-        
+
         isFetchingModels = false
     }
-    
+
     private func addSelectedModel() {
         errorAlert = ""
-        
+
         var modelsAdded: [Model] = []
         do {
             guard !selectedModelNames.isEmpty,
@@ -193,7 +216,7 @@ struct ModelAddSheetView: View {
             else {
                 throw SimpleError(message: "Error: Incomplete data to add models.")
             }
-            
+
             for modelName in selectedModelNames.sorted() {
                 let newModel = try modelManager.createModel(
                     name: modelName,
@@ -201,7 +224,7 @@ struct ModelAddSheetView: View {
                 )
                 modelsAdded.append(newModel)
             }
-            
+
             if let lastModel = modelsAdded.last {
                 onModelCreated?(lastModel)
             }
@@ -210,7 +233,7 @@ struct ModelAddSheetView: View {
             for newModel in modelsAdded {
                 modelManager.deleteModel(model: newModel)
             }
-            
+
             errorAlert = "Failed to save, " + error.localizedDescription
             print(errorAlert)
         }
