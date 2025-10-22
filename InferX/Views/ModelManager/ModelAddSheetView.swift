@@ -141,7 +141,12 @@ struct ModelAddSheetView: View {
                         List {
                             ForEach(availableRemoteModels.sorted { $0.name < $1.name }) { model in
                                 Toggle(isOn: self.makeBinding(for: model.name)) {
-                                    Text(model.name)
+                                    HStack {
+                                        Text(model.name)
+                                        Spacer()
+                                    }
+                                    .clipShape(.rect(cornerRadius: 12))
+                                    .contentShape(Rectangle())
                                 }
                                 .toggleStyle(.checkbox)
                                 .padding(.horizontal, 4)
