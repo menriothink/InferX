@@ -200,7 +200,7 @@ struct MessageData: Identifiable, Sendable {
     }
     
     var think: String {
-        guard self.role == .assistant, modelProvider != .gemini else { return "" }
+        guard self.role == .assistant else { return "" }
         if !content.contains("<think>") && !content.contains("</think>") { return "" }
 
         let firstThinkRange = content.range(of: "<think>")
@@ -221,7 +221,7 @@ struct MessageData: Identifiable, Sendable {
     }
 
     var hasThink: Bool {
-        guard self.role == .assistant, modelProvider != .gemini else { return false }
+        guard self.role == .assistant else { return false }
 
         if content.contains("<think>") {
             return true
@@ -230,7 +230,7 @@ struct MessageData: Identifiable, Sendable {
     }
 
     var thinkComplete: Bool {
-        guard self.role == .assistant, modelProvider != .gemini else { return false }
+        guard self.role == .assistant else { return false }
 
         if content.contains("<think>") {
             if content.contains("</think>") {
@@ -241,7 +241,7 @@ struct MessageData: Identifiable, Sendable {
     }
 
     var realContent: String {
-        guard self.role == .assistant, modelProvider != .gemini else { return content }
+        guard self.role == .assistant else { return content }
 
         guard let completeThinkBlockRegex = try? NSRegularExpression(
             pattern: "<think>.*?</think>",

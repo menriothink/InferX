@@ -188,7 +188,6 @@ struct SettingsView: View {
                         commit: setProxy,
                         text: $proxyHost
                     )
-                    .disabled(!proxyEnable)
                     
                     LabeledTextField(
                         label: "Port Number",
@@ -196,7 +195,6 @@ struct SettingsView: View {
                         commit: setProxy,
                         text: $proxyPort
                     )
-                    .disabled(!proxyEnable)
                     
                     LabeledTextField(
                         label: "Do not use proxy URLs",
@@ -204,9 +202,9 @@ struct SettingsView: View {
                         commit: setProxy,
                         text: $ignorHost
                     )
-                    .disabled(!proxyEnable)
                 }
                 .font(.caption)
+                .disabled(!proxyEnable)
                 
                 Divider()
                 
@@ -398,7 +396,7 @@ struct LabeledTextField: View {
     var body: some View {
         HStack(alignment: .firstTextBaseline) {
             Text("\(label):")
-                .frame(width: 80, alignment: .leading)
+                .frame(width: 120, alignment: .leading)
             Spacer()
             TextField(placeholder, text: $text, onCommit: commit)
                 .textFieldStyle(.roundedBorder)

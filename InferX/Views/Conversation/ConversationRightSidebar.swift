@@ -60,14 +60,14 @@ struct ConversationRightSidebar: View {
             .padding(.horizontal, 4)
             
             LuminareSection("") {
-                if conversationPromptEnableBinding.wrappedValue {
-                    TextEditor(text: conversationPromptBinding)
-                        .multilineTextAlignment(.leading)
-                        .frame(maxHeight: .infinity)
-                        .scrollContentBackground(.hidden)
-                }
+                TextEditor(text: conversationPromptBinding)
+                    .multilineTextAlignment(.leading)
+                    .frame(maxHeight: .infinity)
+                    .scrollContentBackground(.hidden)
+                    .opacity(conversationPromptEnableBinding.wrappedValue ? 1 : 0.6)
             }
             .layoutPriority(1)
+            .disabled(!conversationPromptEnableBinding.wrappedValue)
         }
         .padding()
         .frame(width: 300)

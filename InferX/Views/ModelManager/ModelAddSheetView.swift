@@ -40,7 +40,9 @@ struct ModelAddSheetView: View {
                 .onChange(of: selectedAPIName, handleAPISelectionChange)
                 .disabled(inputApiName != nil)
                 
-                dynamicContentSection
+                Section("Available Models") {
+                    dynamicContentSection
+                }
             }
             .formStyle(.grouped)
             .padding(.horizontal)
@@ -116,18 +118,16 @@ struct ModelAddSheetView: View {
                     !(modelManager.localModels[selectedAPI.name]?.contains(where: { $0.name == model.name }) ?? false)
                 }
                 
-                Section("Available Models") {
-                    if availableRemoteModels.isEmpty {
-                        Text("All available models have been added.")
-                            .foregroundStyle(.secondary)
-                    } else {
-                        List(selection: $selectedModelNames) {
-                            ForEach(availableRemoteModels.sorted { $0.name < $1.name }) { model in
-                                Text(model.name).tag(model.name)
-                            }
+                if availableRemoteModels.isEmpty {
+                    Text("All available models have been added.")
+                        .foregroundStyle(.secondary)
+                } else {
+                    List(selection: $selectedModelNames) {
+                        ForEach(availableRemoteModels.sorted { $0.name < $1.name }) { model in
+                            Text(model.name).tag(model.name)
                         }
-                        .listStyle(.inset)
                     }
+                    .listStyle(.inset)
                 }
             } else {
                 Text("Unknown error, no available models!")
