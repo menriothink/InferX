@@ -5,11 +5,15 @@
 //  Created by mingdw on 2025/4/5.
 //
 
+#if os(macOS)
 import AppKit
+#endif
 import Defaults
 import SwiftUI
 import SwiftUIIntrospect
 
+
+#if os(macOS)
 struct DraggableArea: NSViewRepresentable {
     func makeNSView(context: Context) -> NSView {
         return DraggableNSView()
@@ -117,3 +121,5 @@ extension View {
         modifier(UltramanMinimalistWindowModifier())
     }
 }
+
+#endif

@@ -1,6 +1,10 @@
+#if os(macOS)
 import AppKit
+#endif
 import SwiftUI
 
+
+#if os(macOS)
 @MainActor
 class AppleIntelligenceEffectController: NSWindowController {
     override init(window: NSWindow?) {
@@ -49,3 +53,5 @@ class AppleIntelligenceEffectViewController: NSViewController {
         }
     }
 }
+
+#endif

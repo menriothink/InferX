@@ -57,9 +57,14 @@ struct ThinkingView: View {
             .background(colorScheme == .dark ? .gray.opacity(0.2) : .gray.opacity(0.1))
             .overlay {
                 if showThink && !thinkComplete {
+                    #if os(macOS)
                     AppleIntelligenceEffectView(useRoundedRectangle: true)
                         .allowsHitTesting(false)
                         .opacity(Defaults[.appleIntelligenceEffect] ? 0.5 : 0)
+                    #else
+                    RoundedRectangle(cornerRadius: 8)
+                        .stroke(Color.blue.opacity(0.3), lineWidth: 1)
+                    #endif
                 } else {
                     RoundedRectangle(cornerRadius: 8)
                         .stroke(Color.gray.opacity(0.3), lineWidth: 1)

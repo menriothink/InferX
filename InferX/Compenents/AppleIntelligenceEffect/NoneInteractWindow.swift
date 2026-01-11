@@ -1,4 +1,8 @@
+#if os(macOS)
 import AppKit
+
+#if os(macOS)
+#endif
 
 class NoneInteractWindow: NSWindow {
     override init(
@@ -39,3 +43,5 @@ class NoneInteractWindow: NSWindow {
         false
     }
 }
+
+#endif

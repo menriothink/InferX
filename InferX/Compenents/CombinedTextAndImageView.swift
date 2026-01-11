@@ -1,5 +1,9 @@
 import SwiftUI
+#if os(macOS)
 import AppKit
+
+#if os(macOS)
+#endif
 
 enum TextOrImageFragment: Identifiable, Hashable {
     case text(String)
@@ -107,3 +111,5 @@ struct CombinedTextAndImageView: View {
         return result
     }
 }
+
+#endif

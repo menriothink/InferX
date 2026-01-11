@@ -8,7 +8,9 @@
 import SwiftUI
 import Foundation
 import UniformTypeIdentifiers
+#if os(macOS)
 import AppKit
+#endif
 import AVKit
 import PDFKit
 import CryptoKit

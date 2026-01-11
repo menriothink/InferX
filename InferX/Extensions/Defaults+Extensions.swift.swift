@@ -7,7 +7,9 @@
 
 import Defaults
 import SwiftUI
+#if os(macOS)
 import AppKit.NSFont
+#endif
 
 extension Defaults.Keys {
     static let proxyEnable = Key<Bool>("proxyEnable", default: false)

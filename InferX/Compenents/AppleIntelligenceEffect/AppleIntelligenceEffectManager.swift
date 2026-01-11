@@ -1,4 +1,8 @@
+#if os(macOS)
 import AppKit
+
+#if os(macOS)
+#endif
 
 @MainActor
 class AppleIntelligenceEffectManager {
@@ -28,3 +32,5 @@ class AppleIntelligenceEffectManager {
         }
     }
 }
+
+#endif

@@ -8,7 +8,11 @@
 import AlertToast
 import SwiftUI
 import AVKit
+#if os(macOS)
 import AppKit
+
+#if os(macOS)
+#endif
 
 struct MessageAttachmentView: View {
     var attachmentData: AttachmentData
@@ -344,3 +348,5 @@ struct MacVideoPlayer: View {
         }
     }
 }
+
+#endif

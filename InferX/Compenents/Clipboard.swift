@@ -9,7 +9,9 @@ import Foundation
 import SwiftUI
 
 #if os(macOS)
+#if os(macOS)
 import AppKit
+#endif
 #else
 import UIKit
 #endif
@@ -75,6 +77,8 @@ extension View {
 }
 
 #if os(iOS) || os(visionOS)
+
+#if os(macOS)
 extension UIImage {
     func convertImageToBase64String() -> String {
         return self.jpegData(compressionQuality: 1)?.base64EncodedString() ?? ""
@@ -131,3 +135,5 @@ extension NSImage {
 }
 #endif
 
+
+#endif
