@@ -1,4 +1,7 @@
 import SwiftUI
+#if os(macOS)
+import AppKit
+#endif
 
 public struct UltramanTextField: View {
     let elementMinHeight: CGFloat = 34
@@ -47,22 +50,22 @@ public struct UltramanTextField: View {
                         onSubmit()
                     }
                 }
+                #if os(macOS)
                 .onAppear {
                     guard monitor != nil else { return }
 
                     monitor = NSEvent.addLocalMonitorForEvents(
                         matching: .keyDown
-                    ) {
-                        event in
+                    ) { event in
                         if let window = NSApp.keyWindow,
-                            window.animationBehavior == .documentWindow
+                           window.animationBehavior == .documentWindow
                         {
                             window.keyDown(with: event)
 
                             // Fixes cmd+w to close window.
                             let wKey = 13
                             if event.keyCode == wKey,
-                                event.modifierFlags.contains(.command)
+                               event.modifierFlags.contains(.command)
                             {
                                 return nil
                             }
@@ -88,6 +91,7 @@ public struct UltramanTextField: View {
                 ) { _ in
                     isFocused = false
                 }
+                #endif
         }
     }
 }

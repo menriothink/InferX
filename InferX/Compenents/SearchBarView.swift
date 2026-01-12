@@ -7,11 +7,39 @@
 
 import SwiftUI
 
+#if os(macOS)
+import AppKit
+#endif
+
 struct SearchBarView: View {
     @Environment(\.colorScheme) private var colorScheme
     @Bindable var detailModel: ConversationDetailModel
     @FocusState private var isSearchFocused: Bool
     @State private var isHovering = false
+
+    private var backgroundColor: Color {
+        #if os(macOS)
+        Color(nsColor: .unemphasizedSelectedContentBackgroundColor)
+        #else
+        Color(.secondarySystemBackground)
+        #endif
+    }
+
+    private var textColor: Color {
+        #if os(macOS)
+        Color(nsColor: .controlTextColor)
+        #else
+        Color.primary
+        #endif
+    }
+
+    private var accentColor: Color {
+        #if os(macOS)
+        Color(nsColor: .controlAccentColor)
+        #else
+        Color.accentColor
+        #endif
+    }
     
     var body: some View {
         HStack(alignment: .center, spacing: 2) {
@@ -25,25 +53,27 @@ struct SearchBarView: View {
                 .padding(6)
                 .background(
                     RoundedRectangle(cornerRadius: 6)
-                        .fill(isHovering ? Color(.unemphasizedSelectedContentBackgroundColor).opacity(1) : Color(.unemphasizedSelectedContentBackgroundColor).opacity(0.4))
+                        .fill(isHovering ? backgroundColor.opacity(1) : backgroundColor.opacity(0.4))
                         .overlay(
                             RoundedRectangle(cornerRadius: 6)
                                 .strokeBorder(.quaternary, lineWidth: 1)
                         )
                 )
                 .animation(.easeInOut(duration: 0.2), value: isHovering)
-                .foregroundColor(Color(.controlTextColor))
-                .accentColor(Color(.controlAccentColor))
+                .foregroundColor(textColor)
+                .accentColor(accentColor)
                 .onSubmit {
                     isSearchFocused = false
                     detailModel.scrollToBottomMessage.toggle()
                 }
+                #if os(macOS)
                 .onExitCommand {
                     isSearchFocused = false
                     withAnimation(.easeInOut(duration: 0.5)) {
                         detailModel.isSearching = false
                     }
                 }
+                #endif
                 .onHover { isHovering = $0 }
                 .overlay {
                     HStack {

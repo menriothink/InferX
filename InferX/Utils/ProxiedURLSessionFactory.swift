@@ -14,6 +14,7 @@ struct URLSessionFactory {
 
         if let host = proxyHost, let port = proxyPort, !host.isEmpty {
             print("🔧 Configuring URLSession with proxy: \(host):\(port)")
+            #if os(macOS)
             configuration.connectionProxyDictionary = [
                 kCFNetworkProxiesHTTPEnable: 1,
                 kCFNetworkProxiesHTTPProxy: host,
@@ -22,6 +23,9 @@ struct URLSessionFactory {
                 kCFNetworkProxiesHTTPSProxy: host,
                 kCFNetworkProxiesHTTPSPort: port
             ]
+            #else
+            print("⚠️ Proxy configuration is only supported on macOS builds.")
+            #endif
         } else {
             print("🔧 Configuring URLSession without proxy.")
         }

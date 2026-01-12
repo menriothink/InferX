@@ -66,6 +66,7 @@ struct ModelAPIAddSheetView: View {
                                 checkDirForHFModel()
                             }
                         
+                        #if os(macOS)
                         Button(action: {
                             directoryPathForHFModel = FileManager.default.openDirectorySelectionPanel(
                                 selectedModelDir: URL(fileURLWithPath: directoryPathForHFModel)
@@ -75,6 +76,7 @@ struct ModelAPIAddSheetView: View {
                         }) {
                             Image(systemName: "folder.badge.gearshape")
                         }
+                        #endif
                     }
                 }
                 

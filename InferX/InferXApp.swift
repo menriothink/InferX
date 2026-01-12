@@ -17,6 +17,7 @@ struct InferXApp: App {
     @State private var settingsModel = SettingsModel()
 
     var body: some Scene {
+#if os(macOS)
         WindowGroup {
             ContentView()
                 .environment(settingsModel)
@@ -39,5 +40,16 @@ struct InferXApp: App {
         }
         .windowStyle(.hiddenTitleBar)
         .windowToolbarStyle(.unifiedCompact)
+#else
+        WindowGroup {
+            ContentView()
+                .environment(settingsModel)
+                .environment(
+                    \.locale, .init(identifier: language.rawValue)
+                )
+                .preferredColorScheme(appColorScheme == .system ? nil : appColorScheme.colorScheme)
+                .modelContainer(SwiftDataProvider.share.container)
+        }
+#endif
     }
 }

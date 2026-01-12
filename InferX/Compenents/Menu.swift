@@ -7,6 +7,11 @@
 
 import SwiftUI
 import Defaults
+#if os(macOS)
+import AppKit
+#else
+import UIKit
+#endif
 
 struct MenuView: View {
     @Environment(ConversationModel.self) private var conversationModel
@@ -90,9 +95,13 @@ struct MenuView: View {
     }
     
     private func copyText() {
+        #if os(macOS)
         let pasteboard = NSPasteboard.general
         pasteboard.clearContents()
         pasteboard.setString(messageData.realContent, forType: .string)
+        #else
+        UIPasteboard.general.string = messageData.realContent
+        #endif
         detailModel.toastMessage = "Message is copied"
         detailModel.showToast.toggle()
     }

@@ -7,6 +7,9 @@
 
 import SwiftUI
 import SwiftData
+#if os(macOS)
+import AppKit
+#endif
 
 struct ModelAPIManagerView: View {
     @Environment(\.colorScheme) var colorScheme
@@ -17,10 +20,12 @@ struct ModelAPIManagerView: View {
     var body: some View {
         Group {
             ZStack(alignment: .top) {
+                #if os(macOS)
                 if !managerModel.modelAPIs.isEmpty {
                     Color.clear.frame(height: 50)
                         .background(DraggableArea())
                 }
+                #endif
 
                 HStack(spacing: 0) {
                     if !managerModel.modelAPIs.isEmpty {
@@ -83,6 +88,7 @@ struct ModelAPIManagerView: View {
     }
 
     private func toggleSettingsWindow() {
+        #if os(macOS)
         if let window = NSApp.windows.first(where: { $0.identifier?.rawValue == "Settings" }) {
             if window.isKeyWindow {
                 window.close()
@@ -92,5 +98,8 @@ struct ModelAPIManagerView: View {
         } else {
             openWindow(id: "Settings")
         }
+        #else
+        openWindow(id: "Settings")
+        #endif
     }
 }

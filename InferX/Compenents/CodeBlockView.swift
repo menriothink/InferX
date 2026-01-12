@@ -2,6 +2,9 @@ import SwiftUI
 import MarkdownUI
 import SwiftUIIntrospect
 import SwiftUIX
+#if os(macOS)
+import AppKit
+#endif
 
 enum CodeFoldState {
     case partial
@@ -130,6 +133,7 @@ struct GrowingButton: ButtonStyle {
     }
 }
 
+#if os(macOS)
 final class ForwardingHostingView<Content>: NSHostingView<Content> where Content: View {
     override func wantsForwardedScrollEvents(for axis: NSEvent.GestureAxis) -> Bool {
         return axis == .vertical
@@ -147,6 +151,7 @@ struct ForwardingScrollView<Content: View>: NSViewRepresentable {
         nsView.rootView = content
     }
 }
+#endif
 
 func splitMarkdownByBlocks(_ text: String) -> [String] {
     let maxLength = 500

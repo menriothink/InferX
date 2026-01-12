@@ -1,5 +1,5 @@
 {
-  "originHash" : "d8f0caa84beb369a61156030606e38ed2bd017b198e657a34cbf9a53853d3498",
+  "originHash" : "ea0d67a1f31fb8e13ab99a19fe80edf64e70980dab02d7c04b5722a3436fc74d",
   "pins" : [
     {
       "identity" : "alamofire",
@@ -62,15 +62,6 @@
       "state" : {
         "revision" : "0d91406ecd4d6c1c56275866f00508d9aeacc92a",
         "version" : "1.2.0"
-      }
-    },
-    {
-      "identity" : "luminare",
-      "kind" : "remoteSourceControl",
-      "location" : "git@github.com:MrKai77/Luminare.git",
-      "state" : {
-        "revision" : "d8fc61c831aff8a581deac00c89aa724cc32decd",
-        "version" : "0.2.0"
       }
     },
     {
@@ -241,15 +232,6 @@
       "state" : {
         "branch" : "main",
         "revision" : "b10fc8a284abb9bd908d77243d2ba3b3d8ea6ebc"
-      }
-    },
-    {
-      "identity" : "swiftui-variadic-views",
-      "kind" : "remoteSourceControl",
-      "location" : "https://github.com/lorenzofiamingo/swiftui-variadic-views",
-      "state" : {
-        "revision" : "af67d0e85bd2b499fbfb4cda834117e7c52b12b0",
-        "version" : "1.0.0"
       }
     },
     {

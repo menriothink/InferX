@@ -53,10 +53,18 @@ struct ModelAPIDefaultView: View {
             .frame(width: 200)
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
-        .background(Color(NSColor.windowBackgroundColor))
+        .background(backgroundColor)
         .sheet(isPresented: $addAPISheet) {
             ModelAPIAddSheetView()
         }
+    }
+
+    private var backgroundColor: Color {
+        #if os(macOS)
+        Color(NSColor.windowBackgroundColor)
+        #else
+        Color(UIColor.systemBackground)
+        #endif
     }
 }
 

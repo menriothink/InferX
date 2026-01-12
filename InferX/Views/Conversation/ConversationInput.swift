@@ -10,6 +10,9 @@ import SwiftData
 import Foundation
 import UniformTypeIdentifiers
 import Defaults
+#if os(macOS)
+import AppKit
+#endif
 
 // MARK: - Attachment Data Model
 @MainActor
@@ -404,11 +407,12 @@ struct ConversationInput: View {
     
     @MainActor
     private func attachAdd() {
+        #if os(macOS)
         let panel = NSOpenPanel()
         panel.allowsMultipleSelection = false
         panel.canChooseDirectories = false
-        panel.allowedContentTypes = FileManager.default.getSupportedFileTypes() // Use helper method
-        
+        panel.allowedContentTypes = FileManager.default.getSupportedFileTypes()
+
         if panel.runModal() == .OK {
             guard let url = panel.url else {
                 dropAlertMessage = "No file URL was selected."
@@ -417,6 +421,10 @@ struct ConversationInput: View {
             }
             addAttachment(url: url)
         }
+        #else
+        dropAlertMessage = "附件选择功能当前仅在 macOS 可用。"
+        showingDropAlert = true
+        #endif
     }
     
     /// Create an Attachment object from a URL and generate a thumbnail in the background

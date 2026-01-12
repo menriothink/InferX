@@ -10,6 +10,10 @@ import Foundation
 import UniformTypeIdentifiers
 #if os(macOS)
 import AppKit
+typealias PlatformImage = NSImage
+#else
+import UIKit
+typealias PlatformImage = UIImage
 #endif
 import AVKit
 import PDFKit
@@ -39,40 +43,74 @@ extension FileManager {
 
     func getThumbnail(from url: URL) async -> Image? {
         if let fileType = UTType(filenameExtension: url.pathExtension) {
-            var thumbnail: NSImage?
+            var thumbnail: PlatformImage?
 
             switch true {
             case fileType.conforms(to: .image):
-                thumbnail = NSImage(contentsOf: url)
+                #if os(macOS)
+                thumbnail = PlatformImage(contentsOf: url)
+                #else
+                thumbnail = PlatformImage(contentsOfFile: url.path)
+                #endif
             case fileType.conforms(to: .movie):
                 thumbnail = await generateVideoThumbnail(for: url)
             case fileType.conforms(to: .audio):
-                thumbnail = NSImage(systemSymbolName: "waveform", accessibilityDescription: "Audio file")
+                #if os(macOS)
+                thumbnail = PlatformImage(systemSymbolName: "waveform", accessibilityDescription: "Audio file")
+                #else
+                thumbnail = PlatformImage(systemName: "waveform")
+                #endif
             case fileType.conforms(to: .pdf):
                 thumbnail = generatePDFThumbnail(for: url)
             case fileType.conforms(to: .sourceCode):
-                thumbnail = NSImage(systemSymbolName: "curlybraces", accessibilityDescription: "Code Document")
+                #if os(macOS)
+                thumbnail = PlatformImage(systemSymbolName: "curlybraces", accessibilityDescription: "Code Document")
+                #else
+                thumbnail = PlatformImage(systemName: "curlybraces")
+                #endif
             case fileType.conforms(to: .text):
-                thumbnail = NSImage(systemSymbolName: "doc.plaintext", accessibilityDescription: "Text Document")
+                #if os(macOS)
+                thumbnail = PlatformImage(systemSymbolName: "doc.plaintext", accessibilityDescription: "Text Document")
+                #else
+                thumbnail = PlatformImage(systemName: "doc.plaintext")
+                #endif
+            #if os(macOS)
             case fileType.conforms(to: .docx):
                 thumbnail = await generateWordThumbnail(for: url)
             case fileType.conforms(to: .doc):
                 thumbnail = await generateWordThumbnail(for: url)
+            #endif
             default:
                 if let pdfThumbnail = generatePDFThumbnail(for: url) {
                     thumbnail = pdfThumbnail
                 } else {
-                    thumbnail = NSImage(systemSymbolName: "doc", accessibilityDescription: "Document")
+                    #if os(macOS)
+                    thumbnail = PlatformImage(systemSymbolName: "doc", accessibilityDescription: "Document")
+                    #else
+                    thumbnail = PlatformImage(systemName: "doc")
+                    #endif
                 }
             }
 
             if let thumbnail {
+                #if os(macOS)
                 return Image(nsImage: thumbnail)
+                #else
+                return Image(uiImage: thumbnail)
+                #endif
             } else {
                 print("getThumbnail failed, instead of default thumbnail")
-                thumbnail = NSImage(systemSymbolName: "doc", accessibilityDescription: "Document")
+                #if os(macOS)
+                thumbnail = PlatformImage(systemSymbolName: "doc", accessibilityDescription: "Document")
+                #else
+                thumbnail = PlatformImage(systemName: "doc")
+                #endif
                 if let thumbnail {
+                    #if os(macOS)
                     return Image(nsImage: thumbnail)
+                    #else
+                    return Image(uiImage: thumbnail)
+                    #endif
                 }
             }
         }
@@ -92,7 +130,8 @@ extension FileManager {
         return thumbnails
     }
 
-    func generateWordThumbnail(for url: URL) async -> NSImage? {
+    #if os(macOS)
+    func generateWordThumbnail(for url: URL) async -> PlatformImage? {
         if #available(macOS 10.15, *) {
             if let ql = await quickLookThumbnail(for: url, size: CGSize(width: 256, height: 256)) {
                 return ql
@@ -110,11 +149,11 @@ extension FileManager {
             }
         }
 
-        return NSImage(systemSymbolName: "doc.richtext", accessibilityDescription: "Word Document")
+        return PlatformImage(systemSymbolName: "doc.richtext", accessibilityDescription: "Word Document")
     }
 
     @available(macOS 10.15, *)
-    private func quickLookThumbnail(for url: URL, size: CGSize) async -> NSImage? {
+    private func quickLookThumbnail(for url: URL, size: CGSize) async -> PlatformImage? {
         await withCheckedContinuation { cont in
             let request = QLThumbnailGenerator
                 .Request(fileAt: url,
@@ -123,7 +162,7 @@ extension FileManager {
                          representationTypes: .all)
             QLThumbnailGenerator.shared.generateBestRepresentation(for: request) { rep, error in
                 if let cg = rep?.cgImage {
-                    cont.resume(returning: NSImage(cgImage: cg, size: size))
+                    cont.resume(returning: PlatformImage(cgImage: cg, size: size))
                 } else {
                     if let error { print("QuickLook 失败: \(error.localizedDescription)") }
                     cont.resume(returning: nil)
@@ -133,7 +172,7 @@ extension FileManager {
     }
 
     private func renderAttributedStringToImage(_ attr: NSAttributedString,
-                                               targetSize: CGSize) -> NSImage? {
+                                               targetSize: CGSize) -> PlatformImage? {
         let image = NSImage(size: targetSize)
         image.lockFocus()
         defer { image.unlockFocus() }
@@ -148,8 +187,9 @@ extension FileManager {
         layoutManager.drawGlyphs(forGlyphRange: layoutManager.glyphRange(for: textContainer), at: .init(x: 0, y: 0))
         return image
     }
+    #endif
 
-    private func generatePDFThumbnail(for url: URL) -> NSImage? {
+    private func generatePDFThumbnail(for url: URL) -> PlatformImage? {
         guard let pdfDocument = PDFDocument(url: url) else {
             print("❌ 无法从 URL 初始化 PDFDocument: \(url.path)")
             return nil
@@ -168,7 +208,7 @@ extension FileManager {
         return thumbnailImage
     }
 
-    func generateVideoThumbnail(for url: URL) async -> NSImage? {
+    func generateVideoThumbnail(for url: URL) async -> PlatformImage? {
         let asset = AVURLAsset(url: url)
         let imageGenerator = AVAssetImageGenerator(asset: asset)
         imageGenerator.appliesPreferredTrackTransform = true
@@ -177,10 +217,19 @@ extension FileManager {
 
         do {
             let cgImage = try await imageGenerator.image(at: time).image
-            return NSImage(cgImage: cgImage, size: .zero)
+            #if os(macOS)
+            return PlatformImage(cgImage: cgImage, size: .zero)
+            #else
+            let scale = await MainActor.run { UIScreen.main.scale }
+            return PlatformImage(cgImage: cgImage, scale: scale, orientation: .up)
+            #endif
         } catch {
             print("Failed to generate video thumbnail: \(error)")
-            return NSImage(systemSymbolName: "film", accessibilityDescription: "Video file")
+            #if os(macOS)
+            return PlatformImage(systemSymbolName: "film", accessibilityDescription: "Video file")
+            #else
+            return PlatformImage(systemName: "film")
+            #endif
         }
     }
 
@@ -189,15 +238,17 @@ extension FileManager {
         let staticVideoTypes: [UTType] = [.mpeg4Movie, .mpeg, .movie, .avi]
         let staticAudioTypes: [UTType] = [.wav, .mp3, .aiff]
 
+        #if os(macOS)
         let staticDocumentTypes: [UTType] = [
             .pdf, .text, .plainText, .html, .xml, .sourceCode, .swiftSource, .javaScript, .rtf,
             .docx,
             .doc,
-            //.pptx,
-            //.ppt,
-            //.xlsx,
-            //.xls
         ]
+        #else
+        let staticDocumentTypes: [UTType] = [
+            .pdf, .text, .plainText, .html, .xml, .sourceCode, .swiftSource, .javaScript, .rtf
+        ]
+        #endif
 
         let dynamicTypes: [UTType] = [
             UTType("org.webm.webp"),
@@ -214,6 +265,7 @@ extension FileManager {
         return allSupportedTypes
     }
 
+    #if os(macOS)
     func accessFile<T>(from bookmarkData: Data, accessBlock: (URL) throws -> T) -> T? {
         var isStale = false
         do {
@@ -229,12 +281,6 @@ extension FileManager {
 
             if isStale {
                 print("书签已过期，需要更新")
-                /*let newBookmarkData = try url.bookmarkData(
-                    options: .withSecurityScope,
-                    includingResourceValuesForKeys: nil,
-                    relativeTo: nil
-                )
-                bookmarkData = newBookmarkData*/
             }
 
             print("🛑 已开始安全访问。")
@@ -359,6 +405,86 @@ extension FileManager {
         
         return containerURL
     }
+    #else
+    func getBookmark(for url: URL) -> Data? {
+        do {
+            let bookmark = try url.bookmarkData(
+                options: [],
+                includingResourceValuesForKeys: nil,
+                relativeTo: nil
+            )
+
+            return bookmark
+        } catch {
+            print("为 URL [\(url.path)] 创建书签失败: \(error)")
+            return nil
+        }
+    }
+
+    func getResolvedURL(from bookmarkData: inout Data) -> URL? {
+        do {
+            var isStale = false
+            let resolvedURL = try URL(
+                resolvingBookmarkData: bookmarkData,
+                options: [],
+                relativeTo: nil,
+                bookmarkDataIsStale: &isStale
+            )
+
+            if isStale {
+                print("书签已过期，需要更新")
+                let newBookmarkData = try resolvedURL.bookmarkData(
+                    options: [],
+                    includingResourceValuesForKeys: nil,
+                    relativeTo: nil
+                )
+                bookmarkData = newBookmarkData
+            }
+
+            return resolvedURL
+        } catch {
+            print("❌ 从书签解析 URL 失败: \(error)")
+            return nil
+        }
+    }
+
+    func updateBookmarkIfExpired(from bookmarkData: Data) -> Data? {
+        do {
+            var isStale = false
+            _ = try URL(
+                resolvingBookmarkData: bookmarkData,
+                options: [],
+                relativeTo: nil,
+                bookmarkDataIsStale: &isStale
+            )
+
+            if isStale {
+                return bookmarkData
+            }
+
+            return bookmarkData
+        } catch {
+            print("❌ getNewBookmark, 从书签解析 URL 失败: \(error)")
+            return nil
+        }
+    }
+
+    func isBookmarkValid(_ bookmarkData: Data) -> Bool {
+        do {
+            var isStale = false
+            let url = try URL(
+                resolvingBookmarkData: bookmarkData,
+                options: [],
+                relativeTo: nil,
+                bookmarkDataIsStale: &isStale
+            )
+
+            return try url.checkResourceIsReachable()
+        } catch {
+            return false
+        }
+    }
+    #endif
     
     func getDefautModelCacheDirURL() -> URL? {
         guard let appSupportURL = FileManager.default.urls(
@@ -387,6 +513,7 @@ extension FileManager {
         }
     }
     
+    #if os(macOS)
     func securityAccessFile(url: URL?) -> URL? {
         guard let url else { return nil }
         
@@ -402,7 +529,13 @@ extension FileManager {
         
         return url
     }
+    #else
+    func securityAccessFile(url: URL?) -> URL? {
+        url
+    }
+    #endif
     
+    #if os(macOS)
     func openDirectory(at urlToOpen: URL, in urlInSecurity: URL) throws {
         guard urlToOpen.path.hasPrefix(urlInSecurity.path) else {
             throw SimpleError(message: "错误：尝试打开一个未在授权范围内的目录: \(urlToOpen.path)")
@@ -441,6 +574,7 @@ extension FileManager {
         
         return nil
     }
+    #endif
     
     func sha256Base64(for url: URL) -> String? {
         do {
@@ -561,18 +695,25 @@ extension FileManager {
     }
 
     private func isConvertibleDocumentType(_ fileType: UTType) -> Bool {
+        #if os(macOS)
         let convertibleTypes: [UTType] = [
             .docx, .doc,         // Word
-            //.pptx, .ppt,         // PowerPoint
-            //.xlsx, .xls,         // Excel
             .rtf, .rtfd,         // Rich Text
             .text, .plainText,   // Plain Text
-            .html, .xml, //.csv    // Web & Data Formats
+            .html, .xml
         ]
+        #else
+        let convertibleTypes: [UTType] = [
+            .rtf, .rtfd,
+            .text, .plainText,
+            .html, .xml
+        ]
+        #endif
 
         return convertibleTypes.contains { fileType.conforms(to: $0) }
     }
 
+    #if os(macOS)
     @MainActor
     private func convertByWebView(sourceURL: URL, pdfURL: URL) async -> Bool {
         print("enter convertByWebView")
@@ -597,7 +738,10 @@ extension FileManager {
             coordinator.start()
         }
     }
+    #endif
 }
+
+#if os(macOS)
 
 @MainActor
 private class SimpleWebViewCoordinator: NSObject, WKNavigationDelegate {
@@ -744,6 +888,7 @@ extension UTType {
 }
 
 
+#if os(macOS)
 @MainActor
 private func convertBySnapshotting(sourceURL: URL, pdfURL: URL) async -> Bool {
     return await withCheckedContinuation { continuation in
@@ -755,8 +900,10 @@ private func convertBySnapshotting(sourceURL: URL, pdfURL: URL) async -> Bool {
         coordinator.start()
     }
 }
+#endif
 
 
+#if os(macOS)
 @MainActor
 private class SnapshotCoordinator: NSObject, WKNavigationDelegate {
     private let sourceURL: URL
@@ -863,3 +1010,6 @@ private class SnapshotCoordinator: NSObject, WKNavigationDelegate {
         SnapshotCoordinator.activeCoordinators.removeValue(forKey: taskID)
     }
 }
+#endif
+
+#endif

@@ -148,11 +148,15 @@ struct ModelAddSheetView: View {
                                     .clipShape(.rect(cornerRadius: 12))
                                     .contentShape(Rectangle())
                                 }
+                                #if os(macOS)
                                 .toggleStyle(.checkbox)
+                                #endif
                                 .padding(.horizontal, 4)
                             }
                         }
+                        #if os(macOS)
                         .listStyle(.bordered(alternatesRowBackgrounds: true))
+                        #endif
                         .scrollContentBackground(.visible)
                     }
                 }

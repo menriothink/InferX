@@ -16,13 +16,6 @@ import AppKit
 import UIKit
 #endif
 
-#if os(iOS) || os(visionOS)
-typealias PlatformImage = UIImage
-#else
-typealias PlatformImage = NSImage
-#endif
-
-
 final class Clipboard: Sendable {
     static let shared = Clipboard()
     

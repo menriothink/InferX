@@ -1,6 +1,9 @@
 import SwiftUI
 import SwiftUIIntrospect
 import Defaults
+#if os(iOS)
+import UIKit
+#endif
 
 struct ConversationInputBar: View {
     @Environment(\.colorScheme) private var colorScheme
@@ -53,17 +56,41 @@ struct ConversationInputBar: View {
             endPoint: .bottomTrailing
         )
     }
+
+    private var controlBackgroundColor: Color {
+        #if os(macOS)
+        Color(NSColor.controlBackgroundColor)
+        #else
+        Color(UIColor.secondarySystemBackground)
+        #endif
+    }
+
+    private var controlTextColor: Color {
+        #if os(macOS)
+        Color(NSColor.controlTextColor)
+        #else
+        Color.primary
+        #endif
+    }
+
+    private var controlAccentColor: Color {
+        #if os(macOS)
+        Color(NSColor.controlAccentColor)
+        #else
+        Color.accentColor
+        #endif
+    }
     
     private var inputBackgroundFill: AnyShapeStyle {
         let conversation = detailModel.conversation
         let model = modelManager.getModel(modelID: conversation?.modelID)
         if isFocused && !detailModel.inferring {
             //return AnyShapeStyle(multiColorGradientBackgroundForFocus)
-            return AnyShapeStyle(Color(.controlBackgroundColor).opacity(0.5))
+            return AnyShapeStyle(controlBackgroundColor.opacity(0.5))
         } else if isHoveringOnInput && (model?.isAvailable ?? false) {
-            return AnyShapeStyle(Color(.controlBackgroundColor).opacity(0.5))
+            return AnyShapeStyle(controlBackgroundColor.opacity(0.5))
         } else {
-            return AnyShapeStyle(Color(.controlBackgroundColor).opacity(0.2))
+            return AnyShapeStyle(controlBackgroundColor.opacity(0.2))
         }
     }
 
@@ -137,12 +164,14 @@ struct ConversationInputBar: View {
                                 }
                             )
                             .font(.system(size: 14))
-                            .foregroundColor(Color(.controlTextColor))
-                            .accentColor(Color(.controlAccentColor))
+                            .foregroundColor(controlTextColor)
+                            .accentColor(controlAccentColor)
                             .focused($isFocused)
+#if os(macOS)
                             .onExitCommand {
                                 isFocused = false
                             }
+#endif
                             .disabled(detailModel.inferring || !(model?.isAvailable ?? false))
                             .frame(
                                 width: geometry.size.width - 150,
@@ -221,6 +250,7 @@ struct ConversationInputBar: View {
     }
 
     private func recalculateHeight(for width: CGFloat) {
+#if os(macOS)
         let textView = NSTextView()
         textView.string = messageText
         textView.font = NSFont.systemFont(ofSize: 14)
@@ -228,6 +258,13 @@ struct ConversationInputBar: View {
         textView.textContainer?.containerSize = NSSize(width: width, height: CGFloat.greatestFiniteMagnitude)
         textView.layoutManager?.ensureLayout(for: textView.textContainer!)
         let usedSize = textView.layoutManager?.usedRect(for: textView.textContainer!).size ?? .zero
+#else
+        let textView = UITextView()
+        textView.text = messageText
+        textView.font = UIFont.systemFont(ofSize: 14)
+        let fittingSize = CGSize(width: width, height: .greatestFiniteMagnitude)
+        let usedSize = textView.sizeThatFits(fittingSize)
+#endif
         
         let attachmentsHeight = attachments.isEmpty ? 0 : thumbnailViewHeight
         let textHeight = usedSize.height + 20

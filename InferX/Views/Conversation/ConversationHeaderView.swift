@@ -17,8 +17,12 @@ struct ConverSationHeaderView: View {
         
     var body: some View {
         ZStack {
+            #if os(macOS)
             Color.clear
                 .background(DraggableArea())
+            #else
+            Color.clear
+            #endif
             
             HStack {
                 Button(action: {
@@ -47,12 +51,14 @@ struct ConverSationHeaderView: View {
                 }
                 .padding(.leading, 10)
                 
+                #if os(macOS)
                 Button {
                     toggleSettingsWindow()
                 } label: {
                     Image(systemName: "gear")
                 }
                 .padding(.leading, 20)
+                #endif
 
                 Spacer()
                                 
@@ -102,6 +108,7 @@ struct ConverSationHeaderView: View {
     }
     
     private func toggleSettingsWindow() {
+        #if os(macOS)
         if let window = NSApp.windows.first(where: { $0.identifier?.rawValue == "Settings" }) {
             if window.isKeyWindow {
                 window.close()
@@ -111,5 +118,6 @@ struct ConverSationHeaderView: View {
         } else {
             openWindow(id: "Settings")
         }
+        #endif
     }
 }

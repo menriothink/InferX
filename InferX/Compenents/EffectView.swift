@@ -6,6 +6,12 @@
 //
 
 import SwiftUI
+#if os(iOS)
+import UIKit
+#endif
+
+#if os(macOS)
+import AppKit
 
 /// A SwiftUI Wrapper for `NSVisualEffectView`
 ///
@@ -18,20 +24,6 @@ struct EffectView: NSViewRepresentable {
     private let blendingMode: NSVisualEffectView.BlendingMode
     private let emphasized: Bool
 
-    /// Initializes the
-    /// [`NSVisualEffectView`](https://developer.apple.com/documentation/appkit/nsvisualeffectview)
-    /// with a
-    /// [`Material`](https://developer.apple.com/documentation/appkit/nsvisualeffectview/material) and
-    /// [`BlendingMode`](https://developer.apple.com/documentation/appkit/nsvisualeffectview/blendingmode)
-    ///
-    /// By setting the
-    /// [`emphasized`](https://developer.apple.com/documentation/appkit/nsvisualeffectview/1644721-isemphasized)
-    /// flag the emphasized state of the material will be used if available.
-    ///
-    /// - Parameters:
-    ///   - material: The material to use. Defaults to `.headerView`.
-    ///   - blendingMode: The blending mode to use. Defaults to `.withinWindow`.
-    ///   - emphasized:A Boolean value indicating whether to emphasize the look of the material. Defaults to `false`.
     init(
         _ material: NSVisualEffectView.Material = .headerView,
         blendingMode: NSVisualEffectView.BlendingMode = .withinWindow,
@@ -57,11 +49,6 @@ struct EffectView: NSViewRepresentable {
         nsView.blendingMode = blendingMode
     }
 
-    /// Returns the system selection style as an ``EffectView`` if the `condition` is met.
-    /// Otherwise it returns `Color.clear`
-    ///
-    /// - Parameter condition: The condition of when to apply the background. Defaults to `true`.
-    /// - Returns: A View
     @ViewBuilder
     static func selectionBackground(_ condition: Bool = true) -> some View {
         if condition {
@@ -71,3 +58,46 @@ struct EffectView: NSViewRepresentable {
         }
     }
 }
+
+#else
+
+/// iOS-compatible blur effect wrapper mirroring the macOS API surface
+struct EffectView: View {
+    private let style: UIBlurEffect.Style
+
+    init(
+        _ material: UIBlurEffect.Style = .systemMaterial,
+        blendingMode: UIBlurEffect.Style = .systemMaterial, // kept for signature compatibility
+        emphasized: Bool = false
+    ) {
+        self.style = emphasized ? .systemThinMaterial : material
+    }
+
+    var body: some View {
+        VisualEffectBlur(blurStyle: style)
+    }
+
+    @ViewBuilder
+    static func selectionBackground(_ condition: Bool = true) -> some View {
+        if condition {
+            EffectView(.systemMaterial, emphasized: true)
+        } else {
+            Color.clear
+        }
+    }
+}
+
+/// Lightweight UIKit blur wrapper for SwiftUI
+struct VisualEffectBlur: UIViewRepresentable {
+    var blurStyle: UIBlurEffect.Style
+
+    func makeUIView(context: Context) -> UIVisualEffectView {
+        UIVisualEffectView(effect: UIBlurEffect(style: blurStyle))
+    }
+
+    func updateUIView(_ uiView: UIVisualEffectView, context: Context) {
+        uiView.effect = UIBlurEffect(style: blurStyle)
+    }
+}
+
+#endif

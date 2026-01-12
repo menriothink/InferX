@@ -17,6 +17,14 @@ struct MessageWithMarkdown: View {
     @Environment(ConversationModel.self) private var conversationModel
     @Environment(ConversationDetailModel.self) private var detailModel
     @Environment(ModelManagerModel.self) var modelManager
+
+    private var controlTextColor: SwiftUI.Color {
+        #if os(macOS)
+        SwiftUI.Color(NSColor.controlTextColor)
+        #else
+        SwiftUI.Color.primary
+        #endif
+    }
     
     let messageData: MessageData
     let isBottomMessage: Bool
@@ -227,7 +235,7 @@ struct MessageWithMarkdown: View {
                 FontFamily(.custom(fontName))
                 FontWeight(fontWeight.actualWeight)
                 FontSize(fontSize)
-                ForegroundColor(Color(.controlTextColor))
+                ForegroundColor(controlTextColor)
             }
             .processedContent(processedContent)
             .markdownTheme(MarkdownColours.enchantedThemeMedium)
@@ -268,7 +276,7 @@ struct MessageWithMarkdown: View {
                         FontFamilyVariant(.monospaced)
                         FontWeight(fontWeight.actualWeight)
                         FontSize(fontSize)
-                        ForegroundColor(Color(.controlTextColor))
+                        ForegroundColor(controlTextColor)
                     }
                     .markdownTheme(MarkdownColours.enchantedThemeMedium)
                     .markdownCodeSyntaxHighlighter(.splash(theme: codeHighlightColorScheme))

@@ -8,6 +8,9 @@
 import SwiftUI
 import SwiftData
 import Defaults
+#if os(macOS)
+import AppKit
+#endif
 
 struct ContentView: View {
     @Environment(\.modelContext) private var modelContext
@@ -48,7 +51,9 @@ struct ContentView: View {
             .frame(minWidth: 650, maxHeight: .infinity)
             .contentShape(Rectangle())
             .onTapGesture {
+                #if os(macOS)
                 NSApp.keyWindow?.makeFirstResponder(nil)
+                #endif
                 withAnimation(.easeInOut(duration: 0.8)) {
                     settingsModel.sidebarState = .none
                 }
