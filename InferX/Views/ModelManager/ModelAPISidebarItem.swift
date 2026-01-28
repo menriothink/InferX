@@ -15,15 +15,41 @@ struct ModelAPISidebarItem: View {
     @State private var isHovering: Bool = false
     @State private var isActive: Bool = false
     @State private var showingDeleteTaskAlert = false
+
+    private let rowHeight: CGFloat = {
+        #if os(iOS)
+        return 48
+        #else
+        return 40
+        #endif
+    }()
+
+    private let titleFontSize: CGFloat = {
+        #if os(iOS)
+        return 13
+        #else
+        return 12
+        #endif
+    }()
     
     var body: some View {
         HStack(alignment: .center) {
-            matchedTab(modelProvider: modelAPI.modelProvider)?.iconView()
-                .padding(.leading, 5)
+            if let tab = matchedTab(modelProvider: modelAPI.modelProvider) {
+                #if os(iOS)
+                tab.icon
+                    .resizable()
+                    .scaledToFit()
+                    .frame(width: 14, height: 14)
+                    .padding(.leading, 6)
+                #else
+                tab.iconView()
+                    .padding(.leading, 5)
+                #endif
+            }
             
             Text(LocalizedStringKey(modelAPI.name))
-                .font(.system(size: 12))
-                .offset(x: 10)
+                .font(.system(size: titleFontSize))
+                .offset(x: 6)
                 .lineLimit(1)
                 .help("\(modelAPI.name) \(modelAPI.modelProvider.id)")
 
@@ -35,7 +61,7 @@ struct ModelAPISidebarItem: View {
                 .padding(.trailing, 5)
         }
         .padding(.leading, 10)
-        .frame(height: 40)
+        .frame(height: rowHeight)
         .frame(maxWidth: .infinity)
         .background {
             if isActive || isHovering {
@@ -46,22 +72,28 @@ struct ModelAPISidebarItem: View {
         }
         .clipShape(.rect(cornerRadius: 12))
         .contentShape(Rectangle())
+        #if os(macOS)
         .onHover { isHovering = $0 }
+        #endif
         .task(id: managerModel.activeModelAPI) {
             checkIfSelfIsActiveTab()
         }
         .listRowSeparator(.hidden)
+        #if os(macOS)
         .contextMenu {
             Button(role: .destructive, action: { showingDeleteTaskAlert = true }) {
                 Label("Delete", systemImage: "trash")
             }
         }
+        #endif
+        #if os(macOS)
         .onTapGesture {
             withAnimation(.easeInOut(duration: 0.5)) {
                 managerModel.activeModelAPI = modelAPI
                 managerModel.selectedItem = .modelAPIDetail
             }
         }
+        #endif
         .alert("Confirm Deletion", isPresented: $showingDeleteTaskAlert) {
             Button("Cancel", role: .cancel) {}
             Button("Delete", role: .destructive, action: deleteModelAPI)

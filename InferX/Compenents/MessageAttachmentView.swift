@@ -191,6 +191,7 @@ struct MacImageViewer: View {
             .opacity(isZoomed ? 0 : 1)
             .zIndex(1)
 
+#if os(macOS)
             if let nsImage = NSImage(data: imageData) {
                 Image(nsImage: nsImage)
                     .resizable()
@@ -207,6 +208,24 @@ struct MacImageViewer: View {
                     .foregroundColor(.secondary)
                     .frame(maxWidth: .infinity, maxHeight: .infinity)
             }
+#else
+            if let uiImage = UIImage(data: imageData) {
+                Image(uiImage: uiImage)
+                    .resizable()
+                    .aspectRatio(contentMode: isZoomed ? .fill : .fit)
+                    .frame(maxWidth: .infinity, maxHeight: .infinity)
+                    .ignoresSafeArea(edges: isZoomed ? .all : [])
+                    .onTapGesture {
+                        withAnimation(.easeInOut(duration: 0.3)) {
+                            isZoomed.toggle()
+                        }
+                    }
+            } else {
+                Text("无法加载图片")
+                    .foregroundColor(.secondary)
+                    .frame(maxWidth: .infinity, maxHeight: .infinity)
+            }
+#endif
         }
         .frame(minWidth: 500, idealWidth: 800, maxWidth: .infinity,
                minHeight: 400, idealHeight: 600, maxHeight: .infinity)

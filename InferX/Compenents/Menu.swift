@@ -30,6 +30,7 @@ struct MenuView: View {
                                 .lineLimit(1)
                                 .truncationMode(.middle)
                                 .help(fullName)
+                                .fixedSize(horizontal: true, vertical: false)
                         }
                     }
                     

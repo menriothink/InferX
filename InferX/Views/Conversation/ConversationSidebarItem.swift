@@ -14,7 +14,11 @@ struct ConversationSidebarItem: View {
     var body: some View {
         VStack(alignment: .leading) {
             Text(conversation.title)
+                #if os(iOS)
+                .font(.system(size: 14))
+                #else
                 .font(.system(size: 12))
+                #endif
                 .lineLimit(1)
                 .foregroundColor(.primary)
                 .padding(.horizontal, 10)
@@ -23,13 +27,21 @@ struct ConversationSidebarItem: View {
             HStack {
                 Text(conversation.updatedAt.toFormatted(style: .short))
                     .lineLimit(1)
+                    #if os(iOS)
+                    .font(.system(size: 10))
+                    #else
                     .font(.system(size: 8))
+                    #endif
                     .foregroundColor(.secondary)
                     .padding(.horizontal, 10)
                 
                 Text(conversation.createdAt.toFormatted(style: .short))
                     .lineLimit(1)
+                    #if os(iOS)
+                    .font(.system(size: 10))
+                    #else
                     .font(.system(size: 8))
+                    #endif
                     .foregroundColor(.secondary)
             }
         }

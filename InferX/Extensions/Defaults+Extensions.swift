@@ -1,5 +1,5 @@
 //
-//  Defaults+Extensions.swift.swift
+//  Defaults+Extensions.swift
 //  InferX
 //
 //  Created by mingdw on 2025/3/6.

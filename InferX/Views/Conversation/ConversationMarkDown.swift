@@ -293,7 +293,15 @@ struct MessageWithMarkdown: View {
                 Image(systemName: showMardDown ? "doc.plaintext" : "doc.text")
             }
         }
+        #if os(macOS)
+        #if os(macOS)
         .frame(width: 500, height: 600)
+        #else
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
+        #endif
+        #else
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
+        #endif
         .padding()
     }
 }

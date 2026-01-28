@@ -8,6 +8,11 @@
 import Defaults
 import SwiftUI
 import SwiftData
+#if os(macOS)
+import AppKit
+#elseif os(iOS)
+import UIKit
+#endif
 
 struct ConversationSidebar: View {
     @Environment(\.colorScheme) private var colorScheme
@@ -17,18 +22,36 @@ struct ConversationSidebar: View {
     @State private var isHovering = false
     
     let rowHeight: CGFloat = 40
+    private let searchBarHeight: CGFloat = {
+        #if os(iOS)
+        return 36
+        #else
+        return 20
+        #endif
+    }()
+    private let sidebarTopPadding: CGFloat = {
+        #if os(iOS)
+        return 8
+        #else
+        return 20
+        #endif
+    }()
+    private let topSectionVerticalPadding: CGFloat = {
+        #if os(iOS)
+        return 12
+        #else
+        return 20
+        #endif
+    }()
 
     var body: some View {
         contentStack
-            .modifier(SidebarLayout())
-    }
-    
-    private struct SidebarLayout: ViewModifier {
-        func body(content: Content) -> some View {
-            content
-                .padding(.top, 20)
-                .frame(width: 200)
-        }
+            .padding(.top, sidebarTopPadding)
+            #if os(macOS)
+            .frame(width: 200)
+            #else
+            .frame(maxWidth: .infinity)
+            #endif
     }
     
     private var contentStack: some View {
@@ -49,8 +72,8 @@ struct ConversationSidebar: View {
     
     private var topSection: some View {
         searchBarView
-            .frame(height: 20)
-            .padding(.vertical, 20)
+            .frame(height: searchBarHeight)
+            .padding(.vertical, topSectionVerticalPadding)
             .padding(.leading, 5)
     }
     
@@ -83,7 +106,11 @@ struct ConversationSidebar: View {
     
     private var createSessionButton: some View {
         buttonContent
+            #if os(macOS)
             .frame(width: 180)
+            #else
+            .frame(maxWidth: .infinity)
+            #endif
             .padding(10)
             .padding(.top, 20)
     }
@@ -143,13 +170,13 @@ struct ConversationSidebar: View {
         
 #if os(macOS)
         return textField
-            .background(RoundedRectangle(cornerRadius: 12).fill(isHovering ? Color(.unemphasizedSelectedContentBackgroundColor).opacity(1) : Color(.unemphasizedSelectedContentBackgroundColor).opacity(0.4)))
+            .background(RoundedRectangle(cornerRadius: 12).fill(isHovering ? Color(nsColor: .unemphasizedSelectedContentBackgroundColor).opacity(1) : Color(nsColor: .unemphasizedSelectedContentBackgroundColor).opacity(0.4)))
             .animation(.easeInOut(duration: 0.2), value: isHovering)
-            .foregroundColor(Color(.controlTextColor))
-            .accentColor(Color(.controlAccentColor))
+            .foregroundColor(Color(nsColor: .controlTextColor))
+            .accentColor(Color(nsColor: .controlAccentColor))
 #else
         return textField
-            .background(RoundedRectangle(cornerRadius: 12).fill(isHovering ? Color(.systemGray6).opacity(1) : Color(.systemGray6).opacity(0.4)))
+            .background(RoundedRectangle(cornerRadius: 12).fill(isHovering ? Color(uiColor: .systemGray6).opacity(1) : Color(uiColor: .systemGray6).opacity(0.4)))
             .animation(.easeInOut(duration: 0.2), value: isHovering)
             .foregroundColor(Color.primary)
             .accentColor(Color.accentColor)

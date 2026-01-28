@@ -15,6 +15,28 @@ struct ConversationMessage: View {
     let isBottomMessage: Bool
 
     var body: some View {
+        let horizontalPadding: CGFloat = {
+            #if os(iOS)
+            return 12
+            #else
+            return 20
+            #endif
+        }()
+        let userLeadingPadding: CGFloat = {
+            #if os(iOS)
+            return 24
+            #else
+            return 50
+            #endif
+        }()
+        let assistantTrailingPadding: CGFloat = {
+            #if os(iOS)
+            return 12
+            #else
+            return 20
+            #endif
+        }()
+
         HStack {
             if messageData.role == .user {
                 Spacer()
@@ -44,9 +66,9 @@ struct ConversationMessage: View {
                 Spacer()
             }
         }
-        .padding(.horizontal, 20)
-        .padding(.leading, messageData.role == .user ? 50 : 0)
-        .padding(.trailing, messageData.role == .user ? 0 : 20)
+        .padding(.horizontal, horizontalPadding)
+        .padding(.leading, messageData.role == .user ? userLeadingPadding : 0)
+        .padding(.trailing, messageData.role == .user ? 0 : assistantTrailingPadding)
         .lineSpacing(2)
         .textSelection(.enabled)
         .padding(.vertical, 20)

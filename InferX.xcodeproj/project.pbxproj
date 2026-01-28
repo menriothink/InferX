@@ -13,7 +13,6 @@
 		262799A22DA2D699002CB8A4 /* SwiftUIX in Frameworks */ = {isa = PBXBuildFile; productRef = 262799A12DA2D699002CB8A4 /* SwiftUIX */; };
 		268E8A892EA69C5F00D41C59 /* MarkdownUI in Frameworks */ = {isa = PBXBuildFile; productRef = 268E8A882EA69C5F00D41C59 /* MarkdownUI */; };
 		268E8CF72EA69D3300D41C59 /* Defaults in Frameworks */ = {isa = PBXBuildFile; productRef = 268E8CF62EA69D3300D41C59 /* Defaults */; };
-		268E8CF92EA69D3300D41C59 /* DefaultsMacros in Frameworks */ = {isa = PBXBuildFile; productRef = 268E8CF82EA69D3300D41C59 /* DefaultsMacros */; };
 		268E8CFC2EA69D9100D41C59 /* AlertToast in Frameworks */ = {isa = PBXBuildFile; productRef = 268E8CFB2EA69D9100D41C59 /* AlertToast */; };
 		268E8CFF2EA69DC700D41C59 /* Highlightr in Frameworks */ = {isa = PBXBuildFile; productRef = 268E8CFE2EA69DC700D41C59 /* Highlightr */; };
 		268E8D022EA69E1000D41C59 /* AnyCodable in Frameworks */ = {isa = PBXBuildFile; productRef = 268E8D012EA69E1000D41C59 /* AnyCodable */; };
@@ -106,7 +105,6 @@
 				26ACD26C2E1EAE8600C5D096 /* ArgumentParser in Frameworks */,
 				262799992DA2CCE5002CB8A4 /* Splash in Frameworks */,
 				268E8CF72EA69D3300D41C59 /* Defaults in Frameworks */,
-				268E8CF92EA69D3300D41C59 /* DefaultsMacros in Frameworks */,
 				268E8CFF2EA69DC700D41C59 /* Highlightr in Frameworks */,
 				26FFEC422DF3004A000DFB9E /* SwiftMath in Frameworks */,
 				262799362D9E0B6F002CB8A4 /* SwiftUIIntrospect in Frameworks */,
@@ -212,7 +210,6 @@
 				26D48DB22EA6865A00857B41 /* MLXVLM */,
 				268E8A882EA69C5F00D41C59 /* MarkdownUI */,
 				268E8CF62EA69D3300D41C59 /* Defaults */,
-				268E8CF82EA69D3300D41C59 /* DefaultsMacros */,
 				268E8CFB2EA69D9100D41C59 /* AlertToast */,
 				268E8CFE2EA69DC700D41C59 /* Highlightr */,
 				268E8D012EA69E1000D41C59 /* AnyCodable */,
@@ -768,11 +765,6 @@
 			isa = XCSwiftPackageProductDependency;
 			package = 268E8CF52EA69D3300D41C59 /* XCRemoteSwiftPackageReference "Defaults" */;
 			productName = Defaults;
-		};
-		268E8CF82EA69D3300D41C59 /* DefaultsMacros */ = {
-			isa = XCSwiftPackageProductDependency;
-			package = 268E8CF52EA69D3300D41C59 /* XCRemoteSwiftPackageReference "Defaults" */;
-			productName = DefaultsMacros;
 		};
 		268E8CFB2EA69D9100D41C59 /* AlertToast */ = {
 			isa = XCSwiftPackageProductDependency;

@@ -19,9 +19,44 @@ struct ModelAPIDetailView: View {
     @State private var showingDeleteTaskAlert = false
     @State private var errorShow: String = ""
     
+    private var sortedModels: [Model] {
+        let models = modelManager.localModels[modelAPI.name] ?? []
+        return models.sorted { $0.createdAt > $1.createdAt }
+    }
+    
     var body: some View {
         Form {
             Section(header: Text("Model API Settings").font(.headline)) {
+                #if os(iOS)
+                VStack(alignment: .leading, spacing: 12) {
+                    LabeledContent("Model Provider") {
+                        HStack(spacing: 6) {
+                            modelProviderIcon
+                            Text(modelAPI.modelProvider.id)
+                        }
+                    }
+                    
+                    LabeledContent("Creation Date") {
+                        Text(modelAPI.createdAt.toFormatted(style: .long))
+                    }
+                    
+                    VStack(alignment: .leading, spacing: 6) {
+                        Text("Server URL").font(.subheadline).foregroundStyle(.secondary)
+                        TextField("Server URL", text: $modelAPI.endPoint, onCommit: updateModelStatus)
+                            .textContentType(.URL)
+                            .textInputAutocapitalization(.never)
+                            .keyboardType(.URL)
+                            .textFieldStyle(.roundedBorder)
+                    }
+                    
+                    VStack(alignment: .leading, spacing: 6) {
+                        Text("API Key").font(.subheadline).foregroundStyle(.secondary)
+                        SecureField("API Key", text: $modelAPI.apiKey, onCommit: updateModelStatus)
+                            .textContentType(.password)
+                            .textFieldStyle(.roundedBorder)
+                    }
+                }
+                #else
                 VStack(alignment: .leading) {
                     Grid(alignment: .leadingFirstTextBaseline, horizontalSpacing: 10, verticalSpacing: 15) {
                         HStack {
@@ -59,11 +94,37 @@ struct ModelAPIDetailView: View {
                         }
                     }
                 }
-                .disableAutocorrection(true)
                 .textFieldStyle(RoundedBorderTextFieldStyle())
+                #endif
             }
 
             Section(header: Text("Model Settings").font(.headline)) {
+                #if os(iOS)
+                modelListHeader
+                
+                if !errorShow.isEmpty {
+                    Text(errorShow)
+                        .font(.headline)
+                        .foregroundStyle(.red)
+                }
+                
+                if sortedModels.isEmpty {
+                    Text("No models added for this API.")
+                        .foregroundColor(.secondary)
+                        .frame(maxWidth: .infinity, minHeight: 80, alignment: .center)
+                } else {
+                    ForEach(sortedModels) { localModel in
+                        NavigationLink {
+                            ModelDetailView(model: localModel)
+                                .navigationTitle(localModel.name)
+                                .navigationBarTitleDisplayMode(.inline)
+                        } label: {
+                            modelRowLabel(localModel)
+                        }
+                        .buttonStyle(.plain)
+                    }
+                }
+                #else
                 VStack(alignment: .leading, spacing: 10) {
                     modelListHeader
                     
@@ -77,6 +138,7 @@ struct ModelAPIDetailView: View {
                     Divider()
                     localModelList
                 }
+                #endif
             }
         }
         .foregroundColor(.primary)
@@ -84,6 +146,10 @@ struct ModelAPIDetailView: View {
         .formStyle(.grouped)
         .scrollContentBackground(.hidden)
         .background(Color.clear)
+        .onAppear {
+            modelManager.activeModelAPI = modelAPI
+            modelManager.selectedItem = .modelAPIDetail
+        }
         .sheet(isPresented: $addingModel) {
             ModelAddSheetView(inputApiName: modelAPI.name)
         }
@@ -91,87 +157,153 @@ struct ModelAPIDetailView: View {
     }
         
     private var modelListHeader: some View {
-        HStack(spacing: 5) {
-            Text("Model List")
-                .padding(.trailing, 10)
-
-            Button(action: updateModelStatus) {
-                Image(systemName: "arrow.trianglehead.clockwise.rotate.90")
+        #if os(iOS)
+        ScrollView(.horizontal, showsIndicators: false) {
+            HStack(spacing: 8) {
+                modelListHeaderContentCompact
             }
-            .buttonStyle(ToolbarIconButtonStyle())
-            
-            Button(action: { addingModel = true }) {
-                Image(systemName: "plus")
-            }
-            .buttonStyle(ToolbarIconButtonStyle())
-            
-            Button(action: { showingDeleteTaskAlert = true}) {
-                Image(systemName: "minus")
-            }
-            .disabled(selectedModel == nil)
-            .alert("Confirm Deletion", isPresented: $showingDeleteTaskAlert) {
-                Button("Cancel", role: .cancel) {}
-                Button("Delete", role: .destructive, action: removeModel)
-            } message: {
-                Text("Are you sure you want to delete model \(selectedModel?.name ?? "")?")
-            }
-            .buttonStyle(ToolbarIconButtonStyle())
-            
-            Spacer()
-
-            if modelAPI.modelProvider == .huggingFace {
-                HStack {
-                    Button(action: {
-                        withAnimation(.easeInOut(duration: 1.0)) {
-                            modelManager.selectedItem = .mlxView
-                        }
-                    }) {
-                        VStack(alignment: .center, spacing: 4) {
-                            Image(systemName: "binoculars.circle")
-                            Text("MLX Community")
-                                .font(.system(size: 10))
-                        }
-                    }
-                }
-                .frame(width: 90)
-                
-                VStack(alignment: .center) {
-                    Button(action: {
-                        withAnimation(.easeInOut(duration: 1.0)) {
-                            modelManager.selectedItem = .hfModelListView
-                        }
-                    }) {
-                        VStack(alignment: .center, spacing: 4) {
-                            Image(systemName: "arrow.down.circle")
-                            Text("Local Models")
-                                .font(.system(size: 10))
-                        }
-                    }
-                }
-                .frame(width: 90)
-                
-            }
-
-            Image(systemName: "circle.fill")
-                .controlSize(.mini)
-                .foregroundStyle(modelAPI.isAvailable ? .green : .red)
-                .help("Model Status")
         }
-        .buttonStyle(.plain)
-        .padding(.horizontal, 10)
+        #else
+        HStack(spacing: 5) {
+            modelListHeaderContent
+        }
+        #endif
+    }
+
+    @ViewBuilder
+    private var modelListHeaderContent: some View {
+        Text("Model List")
+            .padding(.trailing, 10)
+
+        Button(action: updateModelStatus) {
+            Image(systemName: "arrow.trianglehead.clockwise.rotate.90")
+        }
+        .buttonStyle(ToolbarIconButtonStyle())
+        
+        Button(action: { addingModel = true }) {
+            Image(systemName: "plus")
+        }
+        .buttonStyle(ToolbarIconButtonStyle())
+        
+        Button(action: { showingDeleteTaskAlert = true}) {
+            Image(systemName: "minus")
+        }
+        .disabled(selectedModel == nil)
+        .alert("Confirm Deletion", isPresented: $showingDeleteTaskAlert) {
+            Button("Cancel", role: .cancel) {}
+            Button("Delete", role: .destructive, action: removeModel)
+        } message: {
+            Text("Are you sure you want to delete model \(selectedModel?.name ?? "")?")
+        }
+        .buttonStyle(ToolbarIconButtonStyle())
+        
+        Spacer()
+
+        if modelAPI.modelProvider == .huggingFace {
+            HStack {
+                Button(action: {
+                    withAnimation(.easeInOut(duration: 1.0)) {
+                        modelManager.selectedItem = .mlxView
+                    }
+                }) {
+                    VStack(alignment: .center, spacing: 4) {
+                        Image(systemName: "binoculars.circle")
+                        Text("MLX Community")
+                            .font(.system(size: 10))
+                    }
+                }
+            }
+            #if os(macOS)
+            .frame(width: 90)
+            #endif
+            
+            VStack(alignment: .center) {
+                Button(action: {
+                    withAnimation(.easeInOut(duration: 1.0)) {
+                        modelManager.selectedItem = .hfModelListView
+                    }
+                }) {
+                    VStack(alignment: .center, spacing: 4) {
+                        Image(systemName: "arrow.down.circle")
+                        Text("Local Models")
+                            .font(.system(size: 10))
+                    }
+                }
+            }
+            #if os(macOS)
+            .frame(width: 90)
+            #endif
+        }
+
+        Image(systemName: "circle.fill")
+            .controlSize(.mini)
+            .foregroundStyle(modelAPI.isAvailable ? .green : .red)
+            .help("Model Status")
+    }
+
+    @ViewBuilder
+    private var modelListHeaderContentCompact: some View {
+        Text("Model List")
+            .padding(.trailing, 6)
+
+        Button(action: updateModelStatus) {
+            Image(systemName: "arrow.trianglehead.clockwise.rotate.90")
+        }
+        .buttonStyle(ToolbarIconButtonStyle())
+        
+        Button(action: { addingModel = true }) {
+            Image(systemName: "plus")
+        }
+        .buttonStyle(ToolbarIconButtonStyle())
+        
+        Button(action: { showingDeleteTaskAlert = true}) {
+            Image(systemName: "minus")
+        }
+        .disabled(selectedModel == nil)
+        .alert("Confirm Deletion", isPresented: $showingDeleteTaskAlert) {
+            Button("Cancel", role: .cancel) {}
+            Button("Delete", role: .destructive, action: removeModel)
+        } message: {
+            Text("Are you sure you want to delete model \(selectedModel?.name ?? "")?")
+        }
+        .buttonStyle(ToolbarIconButtonStyle())
+
+        if modelAPI.modelProvider == .huggingFace {
+            NavigationLink {
+                MLXCommunityView(modelAPI: ModelAPIDescriptor(from: modelAPI))
+            } label: {
+                VStack(alignment: .center, spacing: 4) {
+                    Image(systemName: "binoculars.circle")
+                    Text("MLX Community")
+                        .font(.system(size: 10))
+                }
+            }
+            
+            NavigationLink {
+                HFModelListView(modelAPI: ModelAPIDescriptor(from: modelAPI))
+            } label: {
+                VStack(alignment: .center, spacing: 4) {
+                    Image(systemName: "arrow.down.circle")
+                    Text("Local Models")
+                        .font(.system(size: 10))
+                }
+            }
+        }
+
+        Image(systemName: "circle.fill")
+            .controlSize(.mini)
+            .foregroundStyle(modelAPI.isAvailable ? .green : .red)
+            .help("Model Status")
     }
     
     @ViewBuilder
     private var localModelList: some View {
-        let models = modelManager.localModels[modelAPI.name] ?? []
-        if models.isEmpty {
+        if sortedModels.isEmpty {
             Text("No models added for this API.")
                 .foregroundColor(.secondary)
                 .padding()
                 .frame(height: 200, alignment: .center)
         } else {
-            let sortedModels = models.sorted { $0.createdAt > $1.createdAt }
-            
             VStack(alignment: .leading, spacing: 0) {
                 ScrollView {
                     ForEach(sortedModels) { localModel in
@@ -185,9 +317,45 @@ struct ModelAPIDetailView: View {
                     }
                 }
             }
-            //.frame(height: min(CGFloat(models.count) * 35, 200))
         }
     }
+
+    #if os(iOS)
+    @ViewBuilder
+    private var modelProviderIcon: some View {
+        if let tab = matchedTab(modelProvider: modelAPI.modelProvider) {
+            tab.icon
+                .resizable()
+                .scaledToFit()
+                .frame(width: 14, height: 14)
+        } else {
+            Image(systemName: "circle")
+        }
+    }
+
+    @ViewBuilder
+    private func modelRowLabel(_ model: Model) -> some View {
+        HStack {
+            Image(systemName: "circle.fill")
+                .controlSize(.mini)
+                .foregroundStyle(model.isAvailable ? .green : .red)
+                .font(.subheadline)
+
+            Text(model.name)
+                .font(.subheadline)
+                .lineLimit(1)
+
+            Spacer()
+
+            Image(systemName: "chevron.right")
+                .font(.subheadline)
+                .foregroundStyle(.tertiary)
+        }
+        .padding(.horizontal, 12)
+        .padding(.vertical, 8)
+        .contentShape(Rectangle())
+    }
+    #endif
     
     private func updateModelStatus() {
         Task {

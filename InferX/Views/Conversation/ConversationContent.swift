@@ -132,16 +132,28 @@ struct ConversationContent: View {
                 }
             }
 
-            Color.clear.overlay(alignment: .leading) {
-                if settingsModel.sidebarState == .left {
-                    ConversationSidebar()
-                }
+            if settingsModel.sidebarState != .none {
+                Color.black.opacity(0.001)
+                    .onTapGesture {
+                        withAnimation(.easeInOut(duration: 0.3)) {
+                            settingsModel.sidebarState = .none
+                        }
+                    }
+                    .zIndex(1)
             }
-            
-            Color.clear.overlay(alignment: .trailing) {
-                if settingsModel.sidebarState == .right {
-                    ConversationRightSidebar()
-                }
+
+            if settingsModel.sidebarState == .left {
+                ConversationSidebar()
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                    .transition(.move(edge: .leading))
+                    .zIndex(2)
+            }
+
+            if settingsModel.sidebarState == .right {
+                ConversationRightSidebar()
+                    .frame(maxWidth: .infinity, alignment: .trailing)
+                    .transition(.move(edge: .trailing))
+                    .zIndex(2)
             }
         }
         .background(colorScheme == .dark ?
@@ -149,7 +161,13 @@ struct ConversationContent: View {
         .overlay(alignment: .top) {
             if detailModel.isSearching {
                 SearchBarView(detailModel: detailModel)
+                    #if os(iOS)
+                    .frame(maxWidth: .infinity)
+                    .padding(.horizontal, 12)
+                    .padding(.top, 6)
+                    #else
                     .frame(minWidth: 150, maxWidth: 300)
+                    #endif
             }
         }
     }

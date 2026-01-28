@@ -14,6 +14,7 @@ public struct UltramanTextField: View {
     var alignment: Alignment = .leading
 
     @State var monitor: Any?
+    @FocusState private var fieldIsFocused: Bool
     @State private var isFocused: Bool = false
 
     public init(
@@ -39,6 +40,7 @@ public struct UltramanTextField: View {
             }
 
             TextField(title, text: $text)
+                .focused($fieldIsFocused)
                 .padding(.horizontal, horizontalPadding)
                 .frame(minHeight: elementMinHeight)
                 .multilineTextAlignment(
@@ -49,6 +51,9 @@ public struct UltramanTextField: View {
                     if let onSubmit {
                         onSubmit()
                     }
+                }
+                .onChange(of: fieldIsFocused) {
+                    isFocused = fieldIsFocused
                 }
                 #if os(macOS)
                 .onAppear {
@@ -79,6 +84,7 @@ public struct UltramanTextField: View {
                     }
                     monitor = nil
                 }
+                /*
                 .onReceive(
                     NotificationCenter.default.publisher(
                         for: NSControl.textDidBeginEditingNotification)
@@ -91,6 +97,7 @@ public struct UltramanTextField: View {
                 ) { _ in
                     isFocused = false
                 }
+                */
                 #endif
         }
     }

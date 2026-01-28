@@ -6,6 +6,9 @@ struct ConversationToolBar: View {
     @Environment(ConversationDetailModel.self) private var detailModel
     @Environment(ConversationModel.self) private var conversationModel
     @Environment(ModelManagerModel.self) var modelManager
+    #if os(iOS)
+    @Environment(\.horizontalSizeClass) private var horizontalSizeClass
+    #endif
     
     @State private var addingModel = false
     @State private var selectedModel: Model?
@@ -21,6 +24,14 @@ struct ConversationToolBar: View {
         var completionTPM: Int = 0
         var requestsPerDay: Int = 0
         var requestsPerMinute: Int = 0
+    }
+
+    private var isCompact: Bool {
+        #if os(iOS)
+        return horizontalSizeClass == .compact
+        #else
+        return false
+        #endif
     }
     
     private static let utcCalendar: Calendar = {
@@ -65,22 +76,46 @@ struct ConversationToolBar: View {
     
     @ViewBuilder
     private var statsDisplayView: some View {
-        HStack(spacing: 15) {
-            Spacer()
-            Group {
-                Text("RPD: \(stats.requestsPerDay)")
-                Text("RPM: \(stats.requestsPerMinute)")
-                Text("Input [ TPD: \(stats.promptTPD)  TPM: \(stats.promptTPM) ]")
-                Text("Output [ TPD: \(stats.completionTPD)  TPM: \(stats.completionTPM) ]")
+        Group {
+            if isCompact {
+                VStack(alignment: .leading, spacing: 4) {
+                    Text("RPD: \(stats.requestsPerDay)  RPM: \(stats.requestsPerMinute)")
+                    Text("Input TPD: \(stats.promptTPD)  TPM: \(stats.promptTPM)")
+                    Text("Output TPD: \(stats.completionTPD)  TPM: \(stats.completionTPM)")
+                }
+                .frame(maxWidth: .infinity, alignment: .leading)
+            } else {
+                HStack(spacing: 15) {
+                    Spacer()
+                    Text("RPD: \(stats.requestsPerDay)")
+                    Text("RPM: \(stats.requestsPerMinute)")
+                    Text("Input [ TPD: \(stats.promptTPD)  TPM: \(stats.promptTPM) ]")
+                    Text("Output [ TPD: \(stats.completionTPD)  TPM: \(stats.completionTPM) ]")
+                }
             }
-            .font(.caption)
-            .foregroundStyle(.secondary)
         }
+        .font(isCompact ? .caption2 : .caption)
+        .foregroundStyle(.secondary)
     }
     
     @ViewBuilder
     private var controlButtonsView: some View {
+        #if os(iOS)
+        ScrollView(.horizontal, showsIndicators: false) {
+            HStack(spacing: 8) {
+                toolbarButtonsCompact
+            }
+            .padding(.vertical, 2)
+        }
+        #else
         HStack(spacing: 0) {
+            toolbarButtons
+        }
+        #endif
+    }
+    
+    @ViewBuilder
+    private var toolbarButtons: some View {
             Button {
                 detailModel.mardDownEnable.toggle()
                 detailModel.toastMessage = detailModel.mardDownEnable ? "Markdown format is enabled" : "Markdown format is disabled"
@@ -120,7 +155,47 @@ struct ConversationToolBar: View {
             Spacer()
             
             modelSelectView
+    }
+
+    @ViewBuilder
+    private var toolbarButtonsCompact: some View {
+        Button {
+            detailModel.mardDownEnable.toggle()
+            detailModel.toastMessage = detailModel.mardDownEnable ? "Markdown format is enabled" : "Markdown format is disabled"
+            detailModel.showToast.toggle()
+        } label: { Image(systemName: detailModel.mardDownEnable ? "doc.richtext.fill" : "doc.text") }
+        .buttonStyle(ToolbarIconButtonStyle())
+        .help("Toggle Markdown Format")
+
+        Button {
+            Task {
+                detailModel.scrollToBottomMessage.toggle()
+                try? await Task.sleep(for: .milliseconds(500))
+                withAnimation(.easeInOut) { detailModel.foldEnable.toggle() }
+                detailModel.toastMessage = detailModel.foldEnable ? "Message fold is enabled" : "Message fold is disabled"
+                detailModel.showToast.toggle()
+            }
+        } label: { Image(systemName: detailModel.foldEnable ? "arrow.down.right.and.arrow.up.left" : "arrow.up.left.and.arrow.down.right") }
+        .buttonStyle(ToolbarIconButtonStyle())
+        .help("Toggle Message Folding")
+
+        Button {
+            showAlert = true
+        } label: {
+            Image(systemName: "paintbrush")
+                .rotationEffect(.degrees(iconScale ? -45 : 0))
+                .scaleEffect(iconScale ? 1.2 : 1.0)
         }
+        .buttonStyle(ToolbarIconButtonStyle())
+        .alert("Confirm Deletion", isPresented: $showAlert) {
+            Button("Cancel", role: .cancel) {}
+            Button("Delete", role: .destructive, action: cleanMessages)
+        } message: {
+            Text("Are you sure you want to delete conversation messages?")
+        }
+        .help("Clear All Messages")
+
+        modelSelectView
     }
 
     @ViewBuilder

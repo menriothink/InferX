@@ -70,6 +70,7 @@ struct ModelDetailView: View {
         .scrollContentBackground(.hidden)
         .background(Color.clear)
         .navigationTitle(model.name)
+        #if os(macOS)
         .overlay(alignment: .topLeading) {
             Button(action: {
                 withAnimation(.easeInOut(duration: 1.0)) {
@@ -83,6 +84,7 @@ struct ModelDetailView: View {
             .padding(.leading, 20)
             .buttonStyle(DarkenOnPressButtonCircleStyle())
         }
+        #endif
         .transition(.move(edge: .trailing))
     }
 }

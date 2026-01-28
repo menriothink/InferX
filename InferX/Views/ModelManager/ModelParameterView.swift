@@ -44,7 +44,9 @@ struct ModelParameterView: View {
                         Text("Temperature")
                         Spacer()
                     }
-                    .frame(width: textWidth)
+                        #if os(macOS)
+                        .frame(width: textWidth)
+                        #endif
 
                     Slider(
                         value: Binding(
@@ -55,7 +57,9 @@ struct ModelParameterView: View {
                     )
                     
                     Text("\(model.temperature, specifier: "%.2f")")
+                        #if os(macOS)
                         .frame(width: sliderTextWidth, alignment: .trailing)
+                        #endif
                 }
                 .help("Sampling temperature.")
                 
@@ -64,7 +68,9 @@ struct ModelParameterView: View {
                         Text("Top P")
                         Spacer()
                     }
-                    .frame(width: textWidth)
+                        #if os(macOS)
+                        .frame(width: textWidth)
+                        #endif
                     
                     Slider(
                         value: Binding(
@@ -75,7 +81,9 @@ struct ModelParameterView: View {
                     )
                     
                     Text("\(model.topP, specifier: "%.2f")")
+                        #if os(macOS)
                         .frame(width: sliderTextWidth, alignment: .trailing)
+                        #endif
                 }
                 .frame(alignment: .leading)
                 .help("Select from the most probable tokens whose sum sampling rate is P.")
@@ -86,7 +94,9 @@ struct ModelParameterView: View {
                             Text("Top K")
                             Spacer()
                         }
-                        .frame(width: textWidth)
+                            #if os(macOS)
+                            .frame(width: textWidth)
+                            #endif
 
                         TextField("", value: Binding(
                             get: {
@@ -113,7 +123,9 @@ struct ModelParameterView: View {
                             Text("Seed")
                             Spacer()
                         }
-                        .frame(width: textWidth)
+                            #if os(macOS)
+                            .frame(width: textWidth)
+                            #endif
                         
                         TextField("", value: Binding(
                             get: {
@@ -140,7 +152,9 @@ struct ModelParameterView: View {
                             Text("Repetition Penalty")
                             Spacer()
                         }
-                        .frame(width: textWidth)
+                            #if os(macOS)
+                            .frame(width: textWidth)
+                            #endif
                         
                         Slider(
                             value: Binding(
@@ -151,7 +165,9 @@ struct ModelParameterView: View {
                         )
                         
                         Text("\(model.repetitionPenalty, specifier: "%.2f")")
+                            #if os(macOS)
                             .frame(width: sliderTextWidth, alignment: .trailing)
+                            #endif
                     }
                     .help("A penalty applied to tokens that have already been generated. 1.0 is no penalty. Greater than 1.0 penalizes, less than 1.0 ‘encourages’.")
                 }
@@ -161,7 +177,9 @@ struct ModelParameterView: View {
                         Text("History Messages")
                         Spacer()
                     }
-                    .frame(width: textWidth)
+                        #if os(macOS)
+                        .frame(width: textWidth)
+                        #endif
                     
                     TextField("", value: Binding(
                         get: {
@@ -177,7 +195,9 @@ struct ModelParameterView: View {
                     ), formatter: NumberFormatter())
                         .multilineTextAlignment(.trailing)
                     Spacer()
+                    #if os(macOS)
                     Text("").frame(width: sliderTextWidth)
+                    #endif
                 }
                 .help("Number of historical messages to carry when sending new messages to the model. Recommended range 0-50.")
                 
@@ -187,7 +207,9 @@ struct ModelParameterView: View {
                             Text("Input Tokens Limit")
                             Spacer()
                         }
-                        .frame(width: textWidth)
+                            #if os(macOS)
+                            .frame(width: textWidth)
+                            #endif
                         
                         TextField("", value: Binding(
                             get: {
@@ -216,7 +238,9 @@ struct ModelParameterView: View {
                             Text("Generation Tokens")
                             Spacer()
                         }
-                        .frame(width: textWidth)
+                            #if os(macOS)
+                            .frame(width: textWidth)
+                            #endif
                            
                         TextField("", value: Binding(
                             get: {

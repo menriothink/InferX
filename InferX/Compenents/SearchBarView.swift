@@ -74,7 +74,9 @@ struct SearchBarView: View {
                     }
                 }
                 #endif
+                #if os(macOS)
                 .onHover { isHovering = $0 }
+                #endif
                 .overlay {
                     HStack {
                         Button(action: {

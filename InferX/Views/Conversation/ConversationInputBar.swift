@@ -26,8 +26,34 @@ struct ConversationInputBar: View {
     @State private var generatingTextOpacity: Double = 1.0
 
     let maxHeight: CGFloat = 300
-    let minHeight: CGFloat = 30
-    let thumbnailViewHeight: CGFloat = 100
+    let minHeight: CGFloat = {
+        #if os(iOS)
+        return 36
+        #else
+        return 30
+        #endif
+    }()
+    let thumbnailViewHeight: CGFloat = {
+        #if os(iOS)
+        return 90
+        #else
+        return 100
+        #endif
+    }()
+    private let sideControlsWidth: CGFloat = {
+        #if os(iOS)
+        return 110
+        #else
+        return 150
+        #endif
+    }()
+    private let horizontalPadding: CGFloat = {
+        #if os(iOS)
+        return 12
+        #else
+        return 20
+        #endif
+    }()
 
     private var multiColorGradientBackgroundForFocus: LinearGradient {
         LinearGradient(
@@ -99,6 +125,7 @@ struct ConversationInputBar: View {
             Spacer()
 
             GeometryReader { geometry in
+                let availableWidth = max(120, geometry.size.width - sideControlsWidth)
                 HStack(alignment: .center, spacing: 12) {
                     let conversation = detailModel.conversation
                     let model = modelManager.getModel(modelID: conversation?.modelID)
@@ -112,7 +139,9 @@ struct ConversationInputBar: View {
                             .animation(.spring(response: 0.3, dampingFraction: 0.6), value: isHoveringOnButton)
                     }
                     .buttonStyle(.plain)
+                    #if os(macOS)
                     .onHover { isHoveringOnButton = $0 }
+                    #endif
                     .frame(height: minHeight)
                     .disabled(!(modelMeta?.mediaSupport ?? false) || detailModel.inferring || !(model?.isAvailable ?? false))
 
@@ -174,7 +203,7 @@ struct ConversationInputBar: View {
 #endif
                             .disabled(detailModel.inferring || !(model?.isAvailable ?? false))
                             .frame(
-                                width: geometry.size.width - 150,
+                                width: availableWidth,
                                 height: max(
                                     minHeight,
                                     attachments.isEmpty ? dynamicHeight - 10 : dynamicHeight - 10 - thumbnailViewHeight
@@ -200,7 +229,9 @@ struct ConversationInputBar: View {
                                 }
                             }
                     })
+                    #if os(macOS)
                     .onHover { isHoveringOnInput = $0 }
+                    #endif
                     .padding(10)
                     .hidden(isDragOver)
 
@@ -218,13 +249,13 @@ struct ConversationInputBar: View {
                                 .foregroundColor(.primary)
                                 .font(.system(size: 12, weight: .medium))
                                 .padding(.horizontal, 8)
-                                .frame(height: 25)
+                                .frame(height: max(28, minHeight - 8))
                         } else {
                             Label("Send", systemImage: "paperplane")
                                 .opacity(detailModel.inferring ? 0.7 : 1.0)
                                 .font(.system(size: 12, weight: .medium))
                                 .padding(.horizontal, 8)
-                                .frame(height: 25)
+                                .frame(height: max(28, minHeight - 8))
                         }
                     }
                     .disabled(messageText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty && attachments.isEmpty && !detailModel.inferring)
@@ -234,16 +265,16 @@ struct ConversationInputBar: View {
                     .frame(height: minHeight)
                 }
                 .onChange(of: messageText) {
-                    recalculateHeight(for: geometry.size.width - 150)
+                    recalculateHeight(for: availableWidth)
                 }
                 .onChange(of: attachments) {
-                    recalculateHeight(for: geometry.size.width - 150)
+                    recalculateHeight(for: availableWidth)
                 }
             }
         }
         .frame(height: dynamicHeight)
-        .padding(.horizontal, 20)
-        .padding(.bottom, 20)
+        .padding(.horizontal, horizontalPadding)
+        .padding(.bottom, 16)
         .background(Color.clear)
         .animation(.easeInOut(duration: 0.3), value: dynamicHeight)
         .animation(.spring(), value: attachments.isEmpty)

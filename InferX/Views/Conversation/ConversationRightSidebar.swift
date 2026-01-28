@@ -74,7 +74,11 @@ struct ConversationRightSidebar: View {
             }
         }
         .padding()
+        #if os(macOS)
         .frame(width: 300)
+        #else
+        .frame(maxWidth: .infinity)
+        #endif
         .frame(maxHeight: .infinity, alignment: .top)
         .background {
             EffectView(.hudWindow, blendingMode: .behindWindow)

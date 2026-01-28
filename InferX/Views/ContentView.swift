@@ -48,23 +48,29 @@ struct ContentView: View {
             }
             .environment(conversationModel)
             .environment(modelManager)
+            #if os(macOS)
             .frame(minWidth: 650, maxHeight: .infinity)
+            #else
+            .frame(maxWidth: .infinity, maxHeight: .infinity)
+            #endif
+            #if os(macOS)
             .contentShape(Rectangle())
             .onTapGesture {
-                #if os(macOS)
                 NSApp.keyWindow?.makeFirstResponder(nil)
-                #endif
                 withAnimation(.easeInOut(duration: 0.8)) {
                     settingsModel.sidebarState = .none
                 }
             }
+            #endif
             .onChange(of: settingsModel.sidebarState) {
                 if settingsModel.sidebarState == .left {
                     settingsModel.selectedItem = .conversation
                 }
             }
         }
+        #if os(macOS)
         .ignoresSafeArea(.container, edges: .top)
+        #endif
         .foregroundColor(Color.primary)
         .font(.system(size: 13, weight: .regular, design: .rounded))
         .task {

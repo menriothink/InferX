@@ -178,7 +178,11 @@ struct HFModelItemView: View {
                     if let progress = hfModel.progress {
                         HStack {
                             Text(file)
+                                #if os(macOS)
                                 .frame(width: 180, alignment: .leading)
+                                #else
+                                .frame(maxWidth: .infinity, alignment: .leading)
+                                #endif
 
                             let fileProgress = progress.individualProgresses[file] ?? IndividualProgress()
                             let fractionCompleted = getSafeFractionCompleted(
@@ -200,7 +204,11 @@ struct HFModelItemView: View {
                             let completedString = FileSizeFormatter.string(from: completedBytes)
                             let totalString = FileSizeFormatter.string(from: totalBytes)
                             Text("\(completedString) / \(totalString)")
+                                #if os(macOS)
                                 .frame(width: 120, alignment: .trailing)
+                                #else
+                                .frame(maxWidth: .infinity, alignment: .trailing)
+                                #endif
                                 .monospacedDigit()
                         }
                         .font(.subheadline)
