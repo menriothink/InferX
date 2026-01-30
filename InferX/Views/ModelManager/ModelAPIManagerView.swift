@@ -74,22 +74,28 @@ struct ModelAPIManagerView: View {
                     .listStyle(.insetGrouped)
                     .navigationTitle("Settings")
                     .navigationBarTitleDisplayMode(.large)
-                }
-            }
-            .toolbar {
-                ToolbarItem(placement: .navigationBarLeading) {
-                    Button(action: {
-                        settingsModel.selectedItem = .conversation
-                    }) {
-                        Image(systemName: "arrow.uturn.backward.circle.badge.ellipsis")
+                    .toolbar {
+                        ToolbarItem(placement: .navigationBarLeading) {
+                            Button(action: {
+                                settingsModel.selectedItem = .conversation
+                            }) {
+                                Image(systemName: "arrow.uturn.backward.circle.badge.ellipsis")
+                            }
+                        }
+                        ToolbarItemGroup(placement: .navigationBarTrailing) {
+                            Button {
+                                showingSettings = true
+                            } label: {
+                                Image(systemName: "gear")
+                            }
+                            Button("Done") {
+                                settingsModel.selectedItem = .conversation
+                            }
+                        }
                     }
-                }
-                ToolbarItem(placement: .navigationBarTrailing) {
-                    Button {
-                        showingSettings = true
-                    } label: {
-                        Image(systemName: "gear")
-                    }
+                    .toolbar(.visible, for: .navigationBar)
+                    .toolbarBackground(.visible, for: .navigationBar)
+                    .toolbarBackground(Color(.systemBackground), for: .navigationBar)
                 }
             }
             .sheet(isPresented: $showingSettings) {

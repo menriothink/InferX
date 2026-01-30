@@ -63,14 +63,14 @@ struct ModelAPIAddSheetView: View {
             headerView
             
             Form {
+                #if os(iOS)
+                providerMenuIOS
+                #else
                 Picker("Provider", selection: $modelProvider) {
                     ForEach(ModelProvider.allCases.filter { $0 != .none }, id: \.self) { provider in
                         ProviderPickerRowView(provider: provider).tag(provider)
                     }
                 }
-                #if os(iOS)
-                .pickerStyle(.menu)
-                #else
                 .frame(minWidth: 200)
                 #endif
                 
@@ -144,6 +144,37 @@ struct ModelAPIAddSheetView: View {
         #endif
     }
     
+    #if os(iOS)
+    private var providerMenuIOS: some View {
+        Menu {
+            ForEach(ModelProvider.allCases.filter { $0 != .none }, id: \.self) { provider in
+                Button(provider.rawValue) {
+                    modelProvider = provider
+                }
+            }
+        } label: {
+            HStack {
+                Text("Provider")
+                Spacer()
+                HStack(spacing: 6) {
+                    if let tab = matchedTab(modelProvider: modelProvider) {
+                        tab.icon
+                            .resizable()
+                            .scaledToFit()
+                            .frame(width: 12, height: 12)
+                    }
+                    Text(modelProvider.rawValue)
+                        .foregroundStyle(.secondary)
+                }
+                Image(systemName: "chevron.up.chevron.down")
+                    .font(.footnote)
+                    .foregroundStyle(.secondary)
+            }
+        }
+        .buttonStyle(.plain)
+    }
+    #endif
+
     @ViewBuilder
     private var headerView: some View {
         HStack {

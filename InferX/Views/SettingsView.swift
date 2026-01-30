@@ -10,6 +10,7 @@ import Defaults
 
 struct SettingsView: View {
     @Environment(\.colorScheme) private var colorScheme
+    @Environment(\.dismiss) private var dismiss
 
     @Default(.appColorScheme) var appColorScheme
     @Default(.language) var language
@@ -53,6 +54,23 @@ struct SettingsView: View {
     }
     
     var body: some View {
+        #if os(iOS)
+        NavigationStack {
+            settingsContent
+                .navigationTitle("Settings")
+                .navigationBarTitleDisplayMode(.inline)
+                .toolbar {
+                    ToolbarItem(placement: .cancellationAction) {
+                        Button("Done") { dismiss() }
+                    }
+                }
+        }
+        #else
+        settingsContent
+        #endif
+    }
+
+    private var settingsContent: some View {
         Form {
             Grid(alignment: .leadingFirstTextBaseline, horizontalSpacing: 10, verticalSpacing: 15) {
                 HStack {
