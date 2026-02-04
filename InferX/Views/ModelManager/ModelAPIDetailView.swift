@@ -40,20 +40,24 @@ struct ModelAPIDetailView: View {
                         Text(modelAPI.createdAt.toFormatted(style: .long))
                     }
                     
-                    VStack(alignment: .leading, spacing: 6) {
-                        Text("Server URL").font(.subheadline).foregroundStyle(.secondary)
-                        TextField("Server URL", text: $modelAPI.endPoint, onCommit: updateModelStatus)
-                            .textContentType(.URL)
-                            .textInputAutocapitalization(.never)
-                            .keyboardType(.URL)
-                            .textFieldStyle(.roundedBorder)
-                    }
-                    
-                    VStack(alignment: .leading, spacing: 6) {
-                        Text("API Key").font(.subheadline).foregroundStyle(.secondary)
-                        SecureField("API Key", text: $modelAPI.apiKey, onCommit: updateModelStatus)
-                            .textContentType(.password)
-                            .textFieldStyle(.roundedBorder)
+                    if modelAPI.modelProvider == .copilot {
+                        CopilotAuthStatusView(apiId: modelAPI.id)
+                    } else {
+                        VStack(alignment: .leading, spacing: 6) {
+                            Text("Server URL").font(.subheadline).foregroundStyle(.secondary)
+                            TextField("Server URL", text: $modelAPI.endPoint, onCommit: updateModelStatus)
+                                .textContentType(.URL)
+                                .textInputAutocapitalization(.never)
+                                .keyboardType(.URL)
+                                .textFieldStyle(.roundedBorder)
+                        }
+                        
+                        VStack(alignment: .leading, spacing: 6) {
+                            Text("API Key").font(.subheadline).foregroundStyle(.secondary)
+                            SecureField("API Key", text: $modelAPI.apiKey, onCommit: updateModelStatus)
+                                .textContentType(.password)
+                                .textFieldStyle(.roundedBorder)
+                        }
                     }
                 }
                 #else
@@ -75,22 +79,26 @@ struct ModelAPIDetailView: View {
                                 .frame(maxWidth: .infinity, alignment: .trailing)
                         }
 
-                        HStack {
-                            Text("Server URL")
-                            Spacer()
-                            TextField(text: $modelAPI.endPoint, onCommit: updateModelStatus)
-                                .textContentType(.URL)
-                                .frame(maxWidth: .infinity, alignment: .trailing)
-                                .lineLimit(1)
-                        }
-                        
-                        HStack {
-                            Text("API Key")
-                            Spacer()
-                            SecureField(text: $modelAPI.apiKey, onCommit: updateModelStatus)
-                                .textContentType(.password)
-                                .frame(maxWidth: .infinity, alignment: .trailing)
-                                .lineLimit(1)
+                        if modelAPI.modelProvider == .copilot {
+                            CopilotAuthStatusView(apiId: modelAPI.id)
+                        } else {
+                            HStack {
+                                Text("Server URL")
+                                Spacer()
+                                TextField(text: $modelAPI.endPoint, onCommit: updateModelStatus)
+                                    .textContentType(.URL)
+                                    .frame(maxWidth: .infinity, alignment: .trailing)
+                                    .lineLimit(1)
+                            }
+                            
+                            HStack {
+                                Text("API Key")
+                                Spacer()
+                                SecureField(text: $modelAPI.apiKey, onCommit: updateModelStatus)
+                                    .textContentType(.password)
+                                    .frame(maxWidth: .infinity, alignment: .trailing)
+                                    .lineLimit(1)
+                            }
                         }
                     }
                 }

@@ -7,6 +7,7 @@ struct UltramanTextEditor: NSViewRepresentable {
     @Binding var text: String
     var placeholder: String
     var onSubmit: () -> Void
+    var isEnabled: Bool = true
 
     func makeNSView(context: Context) -> NSScrollView {
         let scrollView = NSTextView.scrollableTextView()
@@ -19,6 +20,8 @@ struct UltramanTextEditor: NSViewRepresentable {
         textView.backgroundColor = .clear
         textView.drawsBackground = true
         textView.textContainerInset = NSSize(width: 6, height: 8)
+        textView.isEditable = isEnabled
+        textView.isSelectable = isEnabled
 
         context.coordinator.setupPlaceholder(for: textView)
 
@@ -27,6 +30,8 @@ struct UltramanTextEditor: NSViewRepresentable {
 
     func updateNSView(_ nsView: NSScrollView, context: Context) {
         let textView = nsView.documentView as! NSTextView
+        textView.isEditable = isEnabled
+        textView.isSelectable = isEnabled
         context.coordinator.updateTextView(to: text, in: textView)
         context.coordinator.updatePlaceholderVisibility(for: textView)
     }
@@ -116,6 +121,7 @@ struct UltramanTextEditor: View {
     @Binding var text: String
     var placeholder: String
     var onSubmit: () -> Void
+    var isEnabled: Bool = true
 
     @FocusState private var isFocused: Bool
 
@@ -132,6 +138,7 @@ struct UltramanTextEditor: View {
                 .focused($isFocused)
                 .scrollContentBackground(.hidden)
                 .background(Color.clear)
+                .disabled(!isEnabled)
                 .submitLabel(.send)
                 .onSubmit(onSubmit)
         }
