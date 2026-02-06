@@ -31,7 +31,7 @@ struct ModelAPIManagerView: View {
                         .navigationBarTitleDisplayMode(.large)
                 } else {
                     List {
-                        Section("Model API Settings") {
+                        Section("Model API") {
                             ForEach(managerModel.modelAPIs) { modelAPI in
                                 NavigationLink {
                                     ModelAPIDetailView(modelAPI: modelAPI)
@@ -45,17 +45,24 @@ struct ModelAPIManagerView: View {
                                 } label: {
                                     ModelAPISidebarItem(modelAPI: modelAPI)
                                 }
+                                .swipeActions(edge: .trailing, allowsFullSwipe: false) {
+                                    Button(role: .destructive) {
+                                        managerModel.deleteModelAPI(modelAPI: modelAPI)
+                                    } label: {
+                                        Label("Delete", systemImage: "trash")
+                                    }
+                                }
                             }
                         }
 
-                        Section {
+                        Section("Actions") {
                             Button {
                                 withAnimation(.easeInOut(duration: 0.8)) {
                                     settingsModel.selectedItem = .conversation
                                     conversationModel.createConversation()
                                 }
                             } label: {
-                                Label("Add Conversation", systemImage: "plus.bubble")
+                                Label("New Conversation", systemImage: "plus.bubble")
                             }
 
                             Button {
@@ -88,8 +95,10 @@ struct ModelAPIManagerView: View {
                             } label: {
                                 Image(systemName: "gear")
                             }
-                            Button("Done") {
+                            Button {
                                 settingsModel.selectedItem = .conversation
+                            } label: {
+                                Text("Done")
                             }
                         }
                     }
@@ -98,6 +107,19 @@ struct ModelAPIManagerView: View {
                     .toolbarBackground(Color(.systemBackground), for: .navigationBar)
                 }
             }
+            #if os(iOS)
+            .gesture(
+                DragGesture(minimumDistance: 50)
+                    .onEnded { value in
+                        // Swipe right to go back to conversation
+                        if value.translation.width > 80 && abs(value.translation.height) < abs(value.translation.width) {
+                            withAnimation(.easeInOut(duration: 0.3)) {
+                                settingsModel.selectedItem = .conversation
+                            }
+                        }
+                    }
+            )
+            #endif
             .sheet(isPresented: $showingSettings) {
                 SettingsView()
                     .environment(settingsModel)

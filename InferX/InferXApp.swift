@@ -34,6 +34,9 @@ struct InferXApp: App {
         Window("Settings", id: "Settings") {
             SettingsView()
                 .environment(settingsModel)
+                .environment(
+                    \.locale, .init(identifier: language.rawValue)
+                )
                 .preferredColorScheme(appColorScheme == .system ? nil : appColorScheme.colorScheme)
                 .frame(minWidth: 400, idealWidth: 400, maxWidth: .infinity, minHeight: 720, idealHeight: 720, maxHeight: .infinity)
                 .ultramanMinimalistWindowStyle()

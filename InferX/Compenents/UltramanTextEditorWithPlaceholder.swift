@@ -4,10 +4,20 @@ import SwiftUI
 import AppKit
 
 struct UltramanTextEditor: NSViewRepresentable {
+    @Environment(\.locale) private var locale
+
     @Binding var text: String
     var placeholder: String
     var onSubmit: () -> Void
     var isEnabled: Bool = true
+    
+    private var localizedPlaceholder: String {
+        String(
+            localized: String.LocalizationValue(placeholder),
+            bundle: .main,
+            locale: locale
+        )
+    }
 
     func makeNSView(context: Context) -> NSScrollView {
         let scrollView = NSTextView.scrollableTextView()
@@ -29,10 +39,12 @@ struct UltramanTextEditor: NSViewRepresentable {
     }
 
     func updateNSView(_ nsView: NSScrollView, context: Context) {
+        context.coordinator.parent = self
         let textView = nsView.documentView as! NSTextView
         textView.isEditable = isEnabled
         textView.isSelectable = isEnabled
         context.coordinator.updateTextView(to: text, in: textView)
+        context.coordinator.updatePlaceholderText()
         context.coordinator.updatePlaceholderVisibility(for: textView)
     }
 
@@ -59,7 +71,7 @@ struct UltramanTextEditor: NSViewRepresentable {
             placeholder.backgroundColor = .clear
             placeholder.textColor = NSColor.secondaryLabelColor
             placeholder.font = textView.font
-            placeholder.string = parent.placeholder
+            placeholder.string = parent.localizedPlaceholder
             placeholder.isEditable = false
             placeholder.isSelectable = false
             placeholder.isHorizontallyResizable = false
@@ -73,6 +85,10 @@ struct UltramanTextEditor: NSViewRepresentable {
 
             textView.addSubview(placeholder)
             updatePlaceholderVisibility(for: textView)
+        }
+        
+        func updatePlaceholderText() {
+            placeholderView?.string = parent.localizedPlaceholder
         }
 
         func textDidChange(_ notification: Notification) {
@@ -128,10 +144,11 @@ struct UltramanTextEditor: View {
     var body: some View {
         ZStack(alignment: .topLeading) {
             if text.isEmpty {
-                Text(placeholder)
+                Text(LocalizedStringKey(placeholder))
                     .foregroundStyle(.secondary)
                     .padding(.horizontal, 6)
                     .padding(.vertical, 10)
+                    .allowsHitTesting(false)
             }
 
             TextEditor(text: $text)

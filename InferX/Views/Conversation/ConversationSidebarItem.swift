@@ -4,6 +4,9 @@ import SwiftData
 struct ConversationSidebarItem: View {
     @Environment(\.colorScheme) private var colorScheme
     @Environment(ConversationModel.self) private var conversationModel
+    #if os(iOS)
+    @Environment(SettingsModel.self) private var settingsModel
+    #endif
 
     let conversation: Conversation
 
@@ -15,7 +18,7 @@ struct ConversationSidebarItem: View {
         VStack(alignment: .leading) {
             Text(conversation.title)
                 #if os(iOS)
-                .font(.system(size: 14))
+                .font(.system(size: 15, weight: isActive ? .semibold : .regular))
                 #else
                 .font(.system(size: 12))
                 #endif
@@ -28,7 +31,7 @@ struct ConversationSidebarItem: View {
                 Text(conversation.updatedAt.toFormatted(style: .short))
                     .lineLimit(1)
                     #if os(iOS)
-                    .font(.system(size: 10))
+                    .font(.system(size: 11))
                     #else
                     .font(.system(size: 8))
                     #endif
@@ -38,35 +41,41 @@ struct ConversationSidebarItem: View {
                 Text(conversation.createdAt.toFormatted(style: .short))
                     .lineLimit(1)
                     #if os(iOS)
-                    .font(.system(size: 10))
+                    .font(.system(size: 11))
                     #else
                     .font(.system(size: 8))
                     #endif
                     .foregroundColor(.secondary)
             }
         }
+        #if os(iOS)
+        .frame(height: 48)
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .background(
+            RoundedRectangle(cornerRadius: 10)
+                .fill(isActive ? Color.accentColor.opacity(0.12) : Color.clear)
+        )
+        #else
         .frame(height: 40)
         .frame(maxWidth: .infinity, alignment: .leading)
         .overlay {
             if isActive || isHovering {
                 RoundedRectangle(cornerRadius: 12)
-                    .fill(isActive || isHovering ? Color.gray.opacity(0.2) : Color.clear)
+                    .fill(Color.gray.opacity(0.2))
                     .strokeBorder(.quaternary, lineWidth: 1)
             }
         }
+        #endif
         .clipShape(.rect(cornerRadius: 12))
         .contentShape(Rectangle())
         .onTapGesture {
-            if let oldConversation = conversationModel.selectedConversation,
-               oldConversation != conversation {
-                conversationModel.detailModel(for: oldConversation).foldEnable = true
-            }
-            conversationModel.selectedConversation = conversation
-            //conversationModel.conversationActive.toggle()
+            selectConversation()
         }
+        #if os(macOS)
         .onHover { hovering in
             isHovering = hovering
         }
+        #endif
         .contextMenu {
             Button(role: .destructive, action: { showingDeleteTaskAlert = true }) {
                 Label("Delete", systemImage: "trash")
@@ -78,13 +87,31 @@ struct ConversationSidebarItem: View {
         } message: {
             Text("Are you sure you want to delete conversation \(conversation.title)?")
         }
-        .animation(.easeOut(duration: 0.2), value: isActive || isHovering)
+        .animation(.easeOut(duration: 0.2), value: isActive)
+        #if os(macOS)
+        .animation(.easeOut(duration: 0.2), value: isHovering)
+        #endif
         .onAppear {
             checkIfSelfIsActiveTab()
         }
         .onChange(of: conversationModel.selectedConversation) { _, _ in
             checkIfSelfIsActiveTab()
         }
+    }
+    
+    private func selectConversation() {
+        if let oldConversation = conversationModel.selectedConversation,
+           oldConversation != conversation {
+            conversationModel.detailModel(for: oldConversation).foldEnable = true
+        }
+        conversationModel.selectedConversation = conversation
+        
+        // iOS: 选择后自动关闭侧边栏
+        #if os(iOS)
+        withAnimation(.easeInOut(duration: 0.3)) {
+            settingsModel.sidebarState = .none
+        }
+        #endif
     }
 
     private func checkIfSelfIsActiveTab() {

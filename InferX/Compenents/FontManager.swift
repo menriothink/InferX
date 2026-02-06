@@ -40,6 +40,8 @@ class FontManager {
     }
     
     static var defaultFont: SystemFont {
-        return SystemFont(id: "System Font", displayName: "系统默认 (Default)")
+        // Keep `displayName` as the localization key so SwiftUI can resolve it
+        // using the view hierarchy's `.environment(\.locale, ...)`.
+        return SystemFont(id: "System Font", displayName: "System Font")
     }
 }

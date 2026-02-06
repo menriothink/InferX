@@ -336,7 +336,15 @@ struct ConversationInputBar: View {
         }
         .frame(height: dynamicHeight)
         .padding(.horizontal, horizontalPadding)
-        .padding(.bottom, 16)
+        .padding(.bottom, {
+            #if os(macOS)
+            // macOS window corners/safe area can make the input feel "too low".
+            // Give it a bit more breathing room from the bottom edge.
+            return 24
+            #else
+            return 16
+            #endif
+        }())
         .background(Color.clear)
         .animation(.easeInOut(duration: 0.3), value: dynamicHeight)
         .animation(.spring(), value: attachments.isEmpty)

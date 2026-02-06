@@ -14,6 +14,10 @@ struct ConverSationHeaderView: View {
     @Environment(ConversationModel.self) private var conversationModel
     @Environment(ConversationDetailModel.self) private var detailModel
     @Environment(\.openWindow) private var openWindow
+    
+    #if os(iOS)
+    @State private var showSettings = false
+    #endif
         
     var body: some View {
         let headerHeight: CGFloat = {
@@ -90,6 +94,14 @@ struct ConverSationHeaderView: View {
                 }
                 .padding(.leading, 20)
                 .contentShape(Rectangle())
+                #else
+                Button {
+                    showSettings = true
+                } label: {
+                    Image(systemName: "gear")
+                }
+                .padding(.leading, 10)
+                .contentShape(Rectangle())
                 #endif
 
                 Spacer()
@@ -141,6 +153,9 @@ struct ConverSationHeaderView: View {
         .buttonStyle(.plain)
         #if os(iOS)
         .padding(.vertical, 6)
+        .sheet(isPresented: $showSettings) {
+            SettingsView()
+        }
         #else
         .padding(.top, 10)
         #endif

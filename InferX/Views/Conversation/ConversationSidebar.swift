@@ -94,6 +94,38 @@ struct ConversationSidebar: View {
     }
     
     private var scrollViewContent: some View {
+        #if os(iOS)
+        List {
+            ForEach(conversationModel.filteredConversations) { conversation in
+                ConversationSidebarItem(conversation: conversation)
+                    .listRowInsets(EdgeInsets(top: 2, leading: 5, bottom: 2, trailing: 5))
+                    .listRowSeparator(.hidden)
+                    .listRowBackground(Color.clear)
+                    .swipeActions(edge: .trailing, allowsFullSwipe: true) {
+                        Button(role: .destructive) {
+                            Task {
+                                await conversationModel.detailModel(for: conversation).deleteAllMessages()
+                                conversationModel.deleteConversation(conversation: conversation)
+                            }
+                        } label: {
+                            Label("Delete", systemImage: "trash")
+                        }
+                    }
+                    .swipeActions(edge: .leading, allowsFullSwipe: false) {
+                        Button {
+                            // 置顶：更新 updatedAt 让它排到最前面
+                            conversation.updatedAt = Date()
+                            loadConversations(conversationModel.searchText)
+                        } label: {
+                            Label("Pin", systemImage: "pin")
+                        }
+                        .tint(.orange)
+                    }
+            }
+        }
+        .listStyle(.plain)
+        .scrollContentBackground(.hidden)
+        #else
         ScrollView {
             LazyVStack(spacing: 1) {
                 ForEach(conversationModel.filteredConversations) { conversation in
@@ -102,6 +134,7 @@ struct ConversationSidebar: View {
                 }
             }
         }
+        #endif
     }
     
     private var createSessionButton: some View {

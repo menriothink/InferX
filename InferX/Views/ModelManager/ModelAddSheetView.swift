@@ -64,8 +64,10 @@ struct ModelAddSheetView: View {
                 }
 
                 Section {
-                    Button("Create New Model API...") {
+                    Button {
                         apiToConfigure = true
+                    } label: {
+                        Text("Create New Model API...")
                     }
                 }
             }
@@ -100,18 +102,17 @@ struct ModelAddSheetView: View {
             }
         } label: {
             HStack {
-                Text("Model API")
-                Spacer()
                 if let selectedAPI = modelManager.modelAPIs.first(where: { $0.name == selectedAPIName }) {
                     ProviderPickerRowView(
                         provider: selectedAPI.modelProvider,
                         apiName: selectedAPI.name
                     )
-                    .foregroundStyle(.secondary)
+                    .foregroundStyle(.primary)
                 } else {
                     Text("Please select a Model API...")
                         .foregroundStyle(.secondary)
                 }
+                Spacer()
                 Image(systemName: "chevron.up.chevron.down")
                     .font(.footnote)
                     .foregroundStyle(.secondary)
@@ -220,8 +221,12 @@ struct ModelAddSheetView: View {
                 } else {
                     VStack {
                         HStack {
-                            Button("Select All", action: { selectAll(availableRemoteModels) })
-                            Button("Deselect All", action: deselectAll)
+                            Button(action: { selectAll(availableRemoteModels) }) {
+                                Text("Select All")
+                            }
+                            Button(action: deselectAll) {
+                                Text("Deselect All")
+                            }
                             Spacer()
                         }
                         .frame(height: 20)
@@ -288,9 +293,13 @@ struct ModelAddSheetView: View {
                         .foregroundStyle(.secondary)
                 } else {
                     HStack(spacing: 12) {
-                        Button("Select All") { selectAll(availableRemoteModels) }
+                        Button(action: { selectAll(availableRemoteModels) }) {
+                            Text("Select All")
+                        }
                             .buttonStyle(.plain)
-                        Button("Deselect All", action: deselectAll)
+                        Button(action: deselectAll) {
+                            Text("Deselect All")
+                        }
                             .buttonStyle(.plain)
                         Spacer()
                     }
@@ -319,8 +328,10 @@ struct ModelAddSheetView: View {
     @ViewBuilder
     private var footerButtons: some View {
         HStack {
-            Button("Create New Model API...") {
+            Button {
                 apiToConfigure = true
+            } label: {
+                Text("Create New Model API...")
             }
             Spacer()
             Button("Cancel", role: .cancel) { dismiss() }

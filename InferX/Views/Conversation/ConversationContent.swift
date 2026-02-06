@@ -11,6 +11,9 @@ import SwiftUIIntrospect
 import AlertToast
 import SwiftUIX
 import Defaults
+#if os(iOS)
+import UIKit
+#endif
 
 struct ScrollToInfo: Equatable {
     let messageID: PersistentIdentifier
@@ -74,6 +77,21 @@ struct ConversationContent: View {
                     }
                 }
                 .scrollPosition($scrollPosition)
+                #if os(iOS)
+                // Tap outside the input to dismiss keyboard (iOS doesn't do this by default).
+                .scrollDismissesKeyboard(.interactively)
+                .contentShape(Rectangle())
+                .simultaneousGesture(
+                    TapGesture().onEnded {
+                        dismissKeyboard()
+                        if detailModel.isSearching {
+                            withAnimation(.easeInOut(duration: 0.2)) {
+                                detailModel.isSearching = false
+                            }
+                        }
+                    }
+                )
+                #endif
                 .onAppear {
                     scrollProxy = proxy
                     if detailModel.searchText.isEmpty {
@@ -131,14 +149,56 @@ struct ConversationContent: View {
                     searchKey = SearchKey(c: conversationModel.searchText, d: detailModel.searchText)
                 }
             }
+            #if os(iOS)
+            .gesture(
+                settingsModel.sidebarState == .none ?
+                DragGesture(minimumDistance: 40, coordinateSpace: .local)
+                    .onEnded { value in
+                        let horizontalAmount = value.translation.width
+                        let verticalAmount = abs(value.translation.height)
+                        
+                        // Only trigger if horizontal movement is dominant
+                        guard abs(horizontalAmount) > verticalAmount else { return }
+                        
+                        if horizontalAmount > 60 {
+                            // Swipe right → open left sidebar
+                            withAnimation(.easeInOut(duration: 0.3)) {
+                                settingsModel.sidebarState = .left
+                            }
+                        } else if horizontalAmount < -60 {
+                            // Swipe left → open right sidebar
+                            withAnimation(.easeInOut(duration: 0.3)) {
+                                settingsModel.sidebarState = .right
+                            }
+                        }
+                    }
+                : nil
+            )
+            #endif
 
             if settingsModel.sidebarState != .none {
-                Color.black.opacity(0.001)
+                Color.black.opacity(0.3)
+                    .ignoresSafeArea()
                     .onTapGesture {
                         withAnimation(.easeInOut(duration: 0.3)) {
                             settingsModel.sidebarState = .none
                         }
                     }
+                    #if os(iOS)
+                    .gesture(
+                        DragGesture(minimumDistance: 30)
+                            .onEnded { value in
+                                withAnimation(.easeInOut(duration: 0.3)) {
+                                    if settingsModel.sidebarState == .left && value.translation.width < -50 {
+                                        settingsModel.sidebarState = .none
+                                    } else if settingsModel.sidebarState == .right && value.translation.width > 50 {
+                                        settingsModel.sidebarState = .none
+                                    }
+                                }
+                            }
+                    )
+                    #endif
+                    .transition(.opacity)
                     .zIndex(1)
             }
 
@@ -146,6 +206,18 @@ struct ConversationContent: View {
                 ConversationSidebar()
                     .frame(maxWidth: .infinity, alignment: .leading)
                     .transition(.move(edge: .leading))
+                    #if os(iOS)
+                    .gesture(
+                        DragGesture(minimumDistance: 30)
+                            .onEnded { value in
+                                if value.translation.width < -50 {
+                                    withAnimation(.easeInOut(duration: 0.3)) {
+                                        settingsModel.sidebarState = .none
+                                    }
+                                }
+                            }
+                    )
+                    #endif
                     .zIndex(2)
             }
 
@@ -153,6 +225,18 @@ struct ConversationContent: View {
                 ConversationRightSidebar()
                     .frame(maxWidth: .infinity, alignment: .trailing)
                     .transition(.move(edge: .trailing))
+                    #if os(iOS)
+                    .gesture(
+                        DragGesture(minimumDistance: 30)
+                            .onEnded { value in
+                                if value.translation.width > 50 {
+                                    withAnimation(.easeInOut(duration: 0.3)) {
+                                        settingsModel.sidebarState = .none
+                                    }
+                                }
+                            }
+                    )
+                    #endif
                     .zIndex(2)
             }
         }
@@ -171,6 +255,17 @@ struct ConversationContent: View {
             }
         }
     }
+
+    #if os(iOS)
+    private func dismissKeyboard() {
+        UIApplication.shared.sendAction(
+            #selector(UIResponder.resignFirstResponder),
+            to: nil,
+            from: nil,
+            for: nil
+        )
+    }
+    #endif
 
     private let offsetToContentBootom: CGFloat = 10
     private func setTopBottom(

@@ -112,7 +112,7 @@ struct ModelAPIDetailView: View {
                 
                 if !errorShow.isEmpty {
                     Text(errorShow)
-                        .font(.headline)
+                        .font(.caption)
                         .foregroundStyle(.red)
                 }
                 
@@ -130,6 +130,30 @@ struct ModelAPIDetailView: View {
                             modelRowLabel(localModel)
                         }
                         .buttonStyle(.plain)
+                        .swipeActions(edge: .trailing, allowsFullSwipe: true) {
+                            Button(role: .destructive) {
+                                modelManager.deleteModel(model: localModel)
+                            } label: {
+                                Label("Delete", systemImage: "trash")
+                            }
+                        }
+                        .swipeActions(edge: .leading, allowsFullSwipe: false) {
+                            NavigationLink {
+                                ModelDetailView(model: localModel)
+                                    .navigationTitle(localModel.name)
+                                    .navigationBarTitleDisplayMode(.inline)
+                            } label: {
+                                Label("Settings", systemImage: "gearshape")
+                            }
+                            .tint(.blue)
+                        }
+                        .contextMenu {
+                            Button(role: .destructive) {
+                                modelManager.deleteModel(model: localModel)
+                            } label: {
+                                Label("Delete", systemImage: "trash")
+                            }
+                        }
                     }
                 }
                 #else
@@ -166,11 +190,7 @@ struct ModelAPIDetailView: View {
         
     private var modelListHeader: some View {
         #if os(iOS)
-        ScrollView(.horizontal, showsIndicators: false) {
-            HStack(spacing: 8) {
-                modelListHeaderContentCompact
-            }
-        }
+        modelListHeaderContentCompact
         #else
         HStack(spacing: 5) {
             modelListHeaderContent
@@ -251,57 +271,54 @@ struct ModelAPIDetailView: View {
 
     @ViewBuilder
     private var modelListHeaderContentCompact: some View {
-        Text("Model List")
-            .padding(.trailing, 6)
+        HStack {
+            Text("Model List")
+                .font(.subheadline.weight(.medium))
 
-        Button(action: updateModelStatus) {
-            Image(systemName: "arrow.trianglehead.clockwise.rotate.90")
-        }
-        .buttonStyle(ToolbarIconButtonStyle())
-        
-        Button(action: { addingModel = true }) {
-            Image(systemName: "plus")
-        }
-        .buttonStyle(ToolbarIconButtonStyle())
-        
-        Button(action: { showingDeleteTaskAlert = true}) {
-            Image(systemName: "minus")
-        }
-        .disabled(selectedModel == nil)
-        .alert("Confirm Deletion", isPresented: $showingDeleteTaskAlert) {
-            Button("Cancel", role: .cancel) {}
-            Button("Delete", role: .destructive, action: removeModel)
-        } message: {
-            Text("Are you sure you want to delete model \(selectedModel?.name ?? "")?")
-        }
-        .buttonStyle(ToolbarIconButtonStyle())
+            Spacer()
 
-        if modelAPI.modelProvider == .huggingFace {
-            NavigationLink {
-                MLXCommunityView(modelAPI: ModelAPIDescriptor(from: modelAPI))
-            } label: {
-                VStack(alignment: .center, spacing: 4) {
-                    Image(systemName: "binoculars.circle")
-                    Text("MLX Community")
-                        .font(.system(size: 10))
+            // Right-side controls (keep comfortable spacing)
+            HStack(spacing: 12) {
+                // Status indicator
+                Circle()
+                    .fill(modelAPI.isAvailable ? Color.green : Color.red)
+                    .frame(width: 7, height: 7)
+
+                // Refresh
+                Button(action: updateModelStatus) {
+                    Image(systemName: "arrow.trianglehead.clockwise.rotate.90")
+                        .font(.system(size: 16))
+                }
+                .buttonStyle(.plain)
+                .foregroundStyle(.secondary)
+
+                // Add model
+                Button(action: { addingModel = true }) {
+                    Image(systemName: "plus.circle")
+                        .font(.system(size: 16))
+                }
+                .buttonStyle(.plain)
+                .foregroundStyle(.secondary)
+
+                if modelAPI.modelProvider == .huggingFace {
+                    NavigationLink {
+                        MLXCommunityView(modelAPI: ModelAPIDescriptor(from: modelAPI))
+                    } label: {
+                        Image(systemName: "binoculars.circle")
+                            .font(.system(size: 16))
+                    }
+                    .foregroundStyle(.secondary)
+
+                    NavigationLink {
+                        HFModelListView(modelAPI: ModelAPIDescriptor(from: modelAPI))
+                    } label: {
+                        Image(systemName: "arrow.down.circle")
+                            .font(.system(size: 16))
+                    }
+                    .foregroundStyle(.secondary)
                 }
             }
-            
-            NavigationLink {
-                HFModelListView(modelAPI: ModelAPIDescriptor(from: modelAPI))
-            } label: {
-                VStack(alignment: .center, spacing: 4) {
-                    Image(systemName: "arrow.down.circle")
-                    Text("Local Models")
-                        .font(.system(size: 10))
-                }
-            }
         }
-
-        Image(systemName: "circle.fill")
-            .controlSize(.mini)
-            .foregroundStyle(modelAPI.isAvailable ? .green : .red)
-            .help("Model Status")
     }
     
     @ViewBuilder
@@ -343,24 +360,16 @@ struct ModelAPIDetailView: View {
 
     @ViewBuilder
     private func modelRowLabel(_ model: Model) -> some View {
-        HStack {
-            Image(systemName: "circle.fill")
-                .controlSize(.mini)
-                .foregroundStyle(model.isAvailable ? .green : .red)
-                .font(.subheadline)
+        HStack(spacing: 10) {
+            Circle()
+                .fill(model.isAvailable ? Color.green : Color.red)
+                .frame(width: 8, height: 8)
 
             Text(model.name)
-                .font(.subheadline)
+                .font(.body)
                 .lineLimit(1)
-
-            Spacer()
-
-            Image(systemName: "chevron.right")
-                .font(.subheadline)
-                .foregroundStyle(.tertiary)
         }
-        .padding(.horizontal, 12)
-        .padding(.vertical, 8)
+        .padding(.vertical, 4)
         .contentShape(Rectangle())
     }
     #endif
