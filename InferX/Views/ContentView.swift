@@ -8,6 +8,9 @@
 import SwiftUI
 import SwiftData
 import Defaults
+#if os(macOS)
+import AppKit
+#endif
 
 struct ContentView: View {
     @Environment(\.modelContext) private var modelContext
@@ -45,7 +48,12 @@ struct ContentView: View {
             }
             .environment(conversationModel)
             .environment(modelManager)
+            #if os(macOS)
             .frame(minWidth: 650, maxHeight: .infinity)
+            #else
+            .frame(maxWidth: .infinity, maxHeight: .infinity)
+            #endif
+            #if os(macOS)
             .contentShape(Rectangle())
             .onTapGesture {
                 NSApp.keyWindow?.makeFirstResponder(nil)
@@ -53,13 +61,16 @@ struct ContentView: View {
                     settingsModel.sidebarState = .none
                 }
             }
+            #endif
             .onChange(of: settingsModel.sidebarState) {
                 if settingsModel.sidebarState == .left {
                     settingsModel.selectedItem = .conversation
                 }
             }
         }
+        #if os(macOS)
         .ignoresSafeArea(.container, edges: .top)
+        #endif
         .foregroundColor(Color.primary)
         .font(.system(size: 13, weight: .regular, design: .rounded))
         .task {

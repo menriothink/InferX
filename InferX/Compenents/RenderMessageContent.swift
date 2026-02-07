@@ -11,6 +11,10 @@ import SwiftUI
 import SwiftUIX
 import Defaults
 
+#if os(macOS)
+import AppKit
+#endif
+
 struct RenderMessageContent: View {
     @Environment(\.colorScheme) private var colorScheme
 
@@ -91,7 +95,11 @@ struct RenderMessageContent: View {
                     FontFamily(.custom(fontName))
                     FontWeight(fontWeight.actualWeight)
                     FontSize(fontSize)
-                    ForegroundColor(Color(.controlTextColor))
+                    #if os(macOS)
+                    ForegroundColor(Color(nsColor: .controlTextColor))
+                    #else
+                    ForegroundColor(Color(.label))
+                    #endif
                 }
                 .markdownTheme(MarkdownColours.enchantedThemeMedium)
                 .markdownCodeSyntaxHighlighter(

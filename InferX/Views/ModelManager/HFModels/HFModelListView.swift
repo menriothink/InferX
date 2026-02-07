@@ -21,8 +21,12 @@ struct HFModelListView: View {
 
             Spacer()
         }
+        #if os(macOS)
         .foregroundColor(Color(.controlTextColor))
         .accentColor(Color(.controlAccentColor))
+        #else
+        .foregroundColor(.primary)
+        #endif
         .overlay(alignment: .topLeading) {
             Button(action: {
                 withAnimation(.easeInOut(duration: 1.0)) {
@@ -67,6 +71,7 @@ struct HFModelListView: View {
                     handleDirectorySelection(URL(fileURLWithPath: directoryPathForTextField))
                 }
 
+            #if os(macOS)
             Button(action: {
                 if let url = FileManager.default.openDirectorySelectionPanel(
                     selectedModelDir: URL(fileURLWithPath: directoryPathForTextField)
@@ -76,6 +81,7 @@ struct HFModelListView: View {
             }) {
                 Image(systemName: "folder.badge.gearshape")
             }
+            #endif
 
             Button(action: { showingDeleteAlert = true }) {
                 Image(systemName: "trash")
@@ -107,7 +113,13 @@ struct HFModelListView: View {
             }
             .background(
                 RoundedRectangle(cornerRadius: 12)
-                    .fill(Color(.controlBackgroundColor).opacity(0.4))
+                    .fill({
+                        #if os(macOS)
+                        Color(.controlBackgroundColor)
+                        #else
+                        Color(.secondarySystemBackground)
+                        #endif
+                    }().opacity(0.4))
             )
         } else {
             Text("No available models found in the current directory. Please add and download from the model community page.")

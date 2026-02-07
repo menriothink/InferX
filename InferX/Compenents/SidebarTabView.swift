@@ -23,8 +23,8 @@ struct SidebarTabView<T: Hashable & Equatable>: Identifiable, Equatable {
     }
 
     func iconView() -> some View {
-        Rectangle()
-            .opacity(0)
+        Color.clear
+            .frame(width: iconSize, height: iconSize)
             .overlay {
                 icon
                     .resizable()
@@ -32,7 +32,6 @@ struct SidebarTabView<T: Hashable & Equatable>: Identifiable, Equatable {
                     .frame(width: iconSize, height: iconSize)
                     .shadow(radius: 4)
             }
-            .aspectRatio(1, contentMode: .fit)
             .fixedSize()
     }
 }

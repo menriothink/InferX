@@ -79,7 +79,9 @@ struct HFModelDownloadView: View {
             Image(systemName: "folder")
         }
         .controlSize(.small)
+        #if os(macOS)
         .help("Open the directory where the model files are located")
+        #endif
         .disabled(hfModel.repoURL == nil)
         .buttonStyle(DarkenOnPressButtonCircleStyle())
     }
@@ -133,12 +135,13 @@ struct HFModelDownloadView: View {
     }
     
     private func openDir(at urlToOpen: URL?, in urlInSecurity: URL?) {
+        #if os(macOS)
         Task {
             do {
                 guard let urlToOpen, let urlInSecurity else {
                     throw SimpleError(message: "Model directory is empty")
                 }
-                
+
                 try FileManager.default.openDirectory(
                     at: urlToOpen,
                     in: urlInSecurity
@@ -146,9 +149,15 @@ struct HFModelDownloadView: View {
             } catch {
                 let title = "Failed to open model directory"
                 let message = error.localizedDescription
-                
+
                 self.errorAlert = ErrorAlert(title: title, message: message)
             }
         }
+        #else
+        let title = "Unavailable on iOS"
+        let message = "Opening model directories is only supported on macOS."
+
+        self.errorAlert = ErrorAlert(title: title, message: message)
+        #endif
     }
 }

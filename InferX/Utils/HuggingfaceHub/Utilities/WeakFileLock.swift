@@ -6,6 +6,7 @@
 //
 
 import Foundation
+import Darwin
 
 public enum WeakFileLockError: Error, LocalizedError {
     case timeout
@@ -20,19 +21,17 @@ public enum WeakFileLockError: Error, LocalizedError {
 
 final class WeakFileLock {
     private let lockPath: String
-    private let lock: NSDistributedLock?
+    private var fileDescriptor: Int32?
     private let timeout: TimeInterval?
     private let logInterval: TimeInterval = 10
 
     init(lockPath: String, timeout: TimeInterval?) {
         self.lockPath = lockPath
-        self.lock = NSDistributedLock(path: lockPath)
         self.timeout = timeout
     }
 
     init(lockPath: String) {
         self.lockPath = lockPath
-        self.lock = NSDistributedLock(path: lockPath)
         self.timeout = nil
     }
 
@@ -44,7 +43,7 @@ final class WeakFileLock {
                 throw WeakFileLockError.timeout
             }
 
-            if lock?.try() == true {
+            if try attemptLock() {
                 return
             }
 
@@ -64,8 +63,26 @@ final class WeakFileLock {
     }
 
     func release() {
-        lock?.unlock()
+        if let fd = fileDescriptor {
+            flock(fd, LOCK_UN)
+            close(fd)
+            fileDescriptor = nil
+        }
 
         try? FileManager.default.removeItem(atPath: lockPath)
+    }
+
+    private func attemptLock() throws -> Bool {
+        if fileDescriptor == nil {
+            FileManager.default.createFile(atPath: lockPath, contents: nil, attributes: nil)
+            fileDescriptor = open(lockPath, O_CREAT | O_RDWR, 0o600)
+        }
+
+        guard let fd = fileDescriptor else {
+            return false
+        }
+
+        let result = flock(fd, LOCK_EX | LOCK_NB)
+        return result == 0
     }
 }

@@ -10,6 +10,7 @@ import Defaults
 
 struct SettingsView: View {
     @Environment(\.colorScheme) private var colorScheme
+    @Environment(\.dismiss) private var dismiss
 
     @Default(.appColorScheme) var appColorScheme
     @Default(.language) var language
@@ -33,10 +34,11 @@ struct SettingsView: View {
     @Default(.gpuCacheLimitEnable) var gpuCacheLimitEnable
     @Default(.appleIntelligenceEffect) var appleIntelligenceEffect
 
-    @State private var tempDirectorySize: String = "Calculating..."
+    @State private var tempDirectorySize: String? = nil
+    @State private var tempDirectoryStatus: LocalizedStringKey = "Calculating..."
     @State private var isClearing: Bool = false
     @State private var showAlert = false
-    @State private var alertMessage = ""
+    @State private var alertMessage: LocalizedStringKey = ""
     
     private let imageSize: CGFloat = 25
     private let minFontSize: CGFloat = 10
@@ -53,6 +55,208 @@ struct SettingsView: View {
     }
     
     var body: some View {
+        #if os(iOS)
+        NavigationStack {
+            settingsContentIOS
+                .navigationTitle("Settings")
+                .navigationBarTitleDisplayMode(.inline)
+                .toolbar {
+                    ToolbarItem(placement: .confirmationAction) {
+                        Button { dismiss() } label: {
+                            Text("Done")
+                        }
+                    }
+                }
+        }
+        // Force the whole navigation stack to rebuild when language changes,
+        // otherwise the navigation title can get "stuck" in the old language.
+        .id(language.rawValue)
+        #else
+        settingsContent
+        #endif
+    }
+
+    #if os(iOS)
+    private var settingsContentIOS: some View {
+        List {
+            Section("Appearance") {
+                Picker("Language", selection: $language) {
+                    ForEach(Language.allCases) { lang in
+                        if lang == .system {
+                            Text("System").tag(lang)
+                        } else {
+                            Text(verbatim: lang.displayName).tag(lang)
+                        }
+                    }
+                }
+
+                Picker("Color Mode", selection: $appColorScheme) {
+                    ForEach(AppColorScheme.allCases, id: \.self) { mode in
+                        Text(LocalizedStringKey(mode.rawValue)).tag(mode)
+                    }
+                }
+
+                HStack {
+                    Text("Brightness")
+                    Spacer()
+                    if colorScheme == .dark {
+                        Slider(value: $backgroundColorBlack, in: 0...1)
+                            .frame(maxWidth: 180)
+                        Text("\(backgroundColorBlack, specifier: "%.2f")")
+                            .font(.caption).foregroundStyle(.secondary)
+                            .frame(width: 35)
+                    } else {
+                        Slider(value: $backgroundColorWhite, in: 0...1)
+                            .frame(maxWidth: 180)
+                        Text("\(backgroundColorWhite, specifier: "%.2f")")
+                            .font(.caption).foregroundStyle(.secondary)
+                            .frame(width: 35)
+                    }
+                }
+
+                HStack {
+                    Text("Corner Radius")
+                    Spacer()
+                    if colorScheme == .dark {
+                        Slider(value: $backgroundContentDarkRadius, in: 0...1)
+                            .frame(maxWidth: 180)
+                        Text("\(backgroundContentDarkRadius, specifier: "%.2f")")
+                            .font(.caption).foregroundStyle(.secondary)
+                            .frame(width: 35)
+                    } else {
+                        Slider(value: $backgroundContentLightRadius, in: 0...1)
+                            .frame(maxWidth: 180)
+                        Text("\(backgroundContentLightRadius, specifier: "%.2f")")
+                            .font(.caption).foregroundStyle(.secondary)
+                            .frame(width: 35)
+                    }
+                }
+
+                Toggle("Apple Intelligence Effect", isOn: $appleIntelligenceEffect)
+            }
+
+            Section("Font") {
+                let fontName = colorScheme == .dark ? fontNameBlack : fontNameWhite
+                let fontSize = colorScheme == .dark ? fontSizeBlack : fontSizeWhite
+                let fontWeight = colorScheme == .dark ? fontWeightBlack.actualWeight : fontWeightWhite.actualWeight
+
+                Text("Font Preview")
+                    .font(font(forName: fontName, size: fontSize, weight: fontWeight))
+                    .frame(maxWidth: .infinity, alignment: .center)
+                    .multilineTextAlignment(.center)
+                    // Avoid a short centered separator under this row.
+                    .alignmentGuide(.listRowSeparatorLeading) { _ in 0 }
+
+                Picker("Font", selection: colorScheme == .dark ? $fontNameBlack : $fontNameWhite) {
+                    ForEach(systemFonts) { f in
+                        if f.id == FontManager.defaultFont.id {
+                            Text("System Font").tag(f.id)
+                        } else {
+                            Text(verbatim: f.displayName).tag(f.id)
+                        }
+                    }
+                }
+
+                Picker("Weight", selection: colorScheme == .dark ? $fontWeightBlack : $fontWeightWhite) {
+                    ForEach(FontWeightOption.allCases) { weight in
+                        Text(LocalizedStringKey(weight.rawValue)).tag(weight)
+                    }
+                }
+
+                HStack {
+                    Text("Size")
+                    Spacer()
+                    if colorScheme == .dark {
+                        Slider(
+                            value: Binding(
+                                get: { Double(fontSizeBlack) },
+                                set: { fontSizeBlack = CGFloat(Int($0)) }
+                            ), in: minFontSize ... maxFontSize
+                        )
+                        .frame(maxWidth: 180)
+                    } else {
+                        Slider(
+                            value: Binding(
+                                get: { Double(fontSizeWhite) },
+                                set: { fontSizeWhite = CGFloat(Int($0)) }
+                            ), in: minFontSize ... maxFontSize
+                        )
+                        .frame(maxWidth: 180)
+                    }
+                    Text("\(Int(colorScheme == .dark ? fontSizeBlack : fontSizeWhite))")
+                        .font(.caption).foregroundStyle(.secondary)
+                        .frame(width: 25)
+                }
+            }
+
+            Section("Proxy") {
+                Toggle("Enable Proxy", isOn: $proxyEnable)
+
+                if proxyEnable {
+                    TextField("Server Address", text: $proxyHost)
+                        .textContentType(.URL)
+                        .textInputAutocapitalization(.never)
+                        .keyboardType(.URL)
+                        .onSubmit(setProxy)
+
+                    TextField("Port", text: $proxyPort)
+                        .keyboardType(.numberPad)
+                        .onSubmit(setProxy)
+
+                    TextField("Bypass URLs", text: $ignorHost)
+                        .textInputAutocapitalization(.never)
+                        .onSubmit(setProxy)
+                }
+            }
+
+            Section("Performance") {
+                Toggle("GPU Memory Limit", isOn: $gpuCacheLimitEnable)
+
+                if gpuCacheLimitEnable {
+                    HStack {
+                        Slider(value: $gpuCacheLimit, in: 1024 ... Double(maxCacheMemoryLimit))
+                        Text("\(gpuCacheLimit, specifier: "%.0f") MB")
+                            .font(.caption).foregroundStyle(.secondary)
+                            .frame(width: 65, alignment: .trailing)
+                    }
+                }
+            }
+
+            Section("Cache") {
+                HStack {
+                    Text("Temporary Files")
+                    Spacer()
+                    Group {
+                        if let tempDirectorySize {
+                            Text(tempDirectorySize)
+                        } else {
+                            Text(tempDirectoryStatus)
+                        }
+                    }
+                    .foregroundStyle(.secondary)
+                    Button(action: clearTempDirectory) {
+                        if isClearing {
+                            ProgressView().controlSize(.small)
+                        } else {
+                            Image(systemName: "trash")
+                                .foregroundStyle(.red)
+                        }
+                    }
+                    .disabled(isClearing)
+                    .buttonStyle(.plain)
+                }
+            }
+        }
+        .listStyle(.insetGrouped)
+        .onChange(of: proxyEnable) { setProxy() }
+        .onAppear { calculateTempDirectorySize() }
+        .alert(isPresented: $showAlert) {
+            Alert(title: Text("Done"), message: Text(alertMessage), dismissButton: .default(Text("OK")))
+        }
+    }
+    #endif
+
+    private var settingsContent: some View {
         Form {
             Grid(alignment: .leadingFirstTextBaseline, horizontalSpacing: 10, verticalSpacing: 15) {
                 HStack {
@@ -61,8 +265,11 @@ struct SettingsView: View {
                     
                     Picker("Language", selection: $language) {
                         ForEach(Language.allCases) { language in
-                            Text(language.displayName)
-                                .tag(language)
+                            if language == .system {
+                                Text("System").tag(language)
+                            } else {
+                                Text(verbatim: language.displayName).tag(language)
+                            }
                         }
                     }
                 }
@@ -72,7 +279,7 @@ struct SettingsView: View {
                         .frame(width: imageSize, height: imageSize)
                     Picker("Color Mode", selection: $appColorScheme) {
                         ForEach(AppColorScheme.allCases, id: \.self) { mode in
-                            Text(mode.rawValue)
+                            Text(LocalizedStringKey(mode.rawValue))
                                 .tag(mode)
                         }
                     }
@@ -134,8 +341,13 @@ struct SettingsView: View {
                         .frame(width: imageSize, height: imageSize)
                     Picker("Font Selection", selection: colorScheme == .dark ? $fontNameBlack : $fontNameWhite) {
                         ForEach(systemFonts) { font in
-                            Text(font.displayName)
-                                .tag(font.id)
+                            if font.id == FontManager.defaultFont.id {
+                                Text("System Font")
+                                    .tag(font.id)
+                            } else {
+                                Text(verbatim: font.displayName)
+                                    .tag(font.id)
+                            }
                         }
                     }
                 }
@@ -145,7 +357,7 @@ struct SettingsView: View {
                         .frame(width: imageSize, height: imageSize)
                     Picker("Font Weight", selection: colorScheme == .dark ? $fontWeightBlack : $fontWeightWhite) {
                         ForEach(FontWeightOption.allCases) { weight in
-                            Text(weight.displayName).tag(weight)
+                            Text(LocalizedStringKey(weight.rawValue)).tag(weight)
                         }
                     }
                 }
@@ -258,8 +470,14 @@ struct SettingsView: View {
                     HStack {
                         Text("Temporary File Cache")
                         Spacer()
-                        Text(tempDirectorySize)
-                            .foregroundColor(.secondary)
+                        Group {
+                            if let tempDirectorySize {
+                                Text(tempDirectorySize)
+                            } else {
+                                Text(tempDirectoryStatus)
+                            }
+                        }
+                        .foregroundColor(.secondary)
                         Button(action: clearTempDirectory) {
                             if isClearing {
                                 HStack(spacing: 8) {
@@ -328,13 +546,17 @@ struct SettingsView: View {
     }
     
     private func calculateTempDirectorySize() {
+        // Reset to a localized “calculating” status while we compute.
+        self.tempDirectorySize = nil
+        self.tempDirectoryStatus = "Calculating..."
         Task(priority: .userInitiated) {
             let fileManager = FileManager.default
             let tempDirectoryURL = URL(fileURLWithPath: NSTemporaryDirectory(), isDirectory: true)
             
             guard let enumerator = fileManager.enumerator(at: tempDirectoryURL, includingPropertiesForKeys: [.fileSizeKey], options: []) else {
                 await MainActor.run {
-                    self.tempDirectorySize = "Error"
+                    self.tempDirectorySize = nil
+                    self.tempDirectoryStatus = "Error"
                 }
                 return
             }

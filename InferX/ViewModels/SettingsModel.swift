@@ -80,6 +80,12 @@ enum AppColorScheme: String, CaseIterable, Identifiable, Sendable, Defaults.Seri
 
     var id: String { self.rawValue }
 
+    var displayName: String {
+        // Keep this as the localization *key* so SwiftUI can resolve it
+        // using the view hierarchy's `.environment(\.locale, ...)`.
+        rawValue
+    }
+
     var colorScheme: ColorScheme? {
         switch self {
         case .system: return nil
@@ -113,6 +119,12 @@ enum FontWeightOption: String, CaseIterable, Identifiable, Codable, Defaults.Ser
     }
 
     var displayName: String {
+        // Keep this as the localization *key* so SwiftUI can resolve it
+        // using the view hierarchy's `.environment(\.locale, ...)`.
+        rawValue
+    }
+
+    var displayNameLegacy: String {
         switch self {
         case .light: return "细体 (Light)"
         case .regular: return "常规 (Regular)"

@@ -1,6 +1,9 @@
 import SwiftUI
 import SwiftUIIntrospect
 import Defaults
+#if os(iOS)
+import UIKit
+#endif
 
 struct ConversationInputBar: View {
     @Environment(\.colorScheme) private var colorScheme
@@ -23,8 +26,34 @@ struct ConversationInputBar: View {
     @State private var generatingTextOpacity: Double = 1.0
 
     let maxHeight: CGFloat = 300
-    let minHeight: CGFloat = 30
-    let thumbnailViewHeight: CGFloat = 100
+    let minHeight: CGFloat = {
+        #if os(iOS)
+        return 36
+        #else
+        return 30
+        #endif
+    }()
+    let thumbnailViewHeight: CGFloat = {
+        #if os(iOS)
+        return 90
+        #else
+        return 100
+        #endif
+    }()
+    private let sideControlsWidth: CGFloat = {
+        #if os(iOS)
+        return 110
+        #else
+        return 150
+        #endif
+    }()
+    private let horizontalPadding: CGFloat = {
+        #if os(iOS)
+        return 12
+        #else
+        return 20
+        #endif
+    }()
 
     private var multiColorGradientBackgroundForFocus: LinearGradient {
         LinearGradient(
@@ -53,174 +82,276 @@ struct ConversationInputBar: View {
             endPoint: .bottomTrailing
         )
     }
-    
-    private var inputBackgroundFill: AnyShapeStyle {
-        let conversation = detailModel.conversation
-        let model = modelManager.getModel(modelID: conversation?.modelID)
-        if isFocused && !detailModel.inferring {
-            //return AnyShapeStyle(multiColorGradientBackgroundForFocus)
-            return AnyShapeStyle(Color(.controlBackgroundColor).opacity(0.5))
-        } else if isHoveringOnInput && (model?.isAvailable ?? false) {
-            return AnyShapeStyle(Color(.controlBackgroundColor).opacity(0.5))
-        } else {
-            return AnyShapeStyle(Color(.controlBackgroundColor).opacity(0.2))
-        }
+
+    private var controlBackgroundColor: Color {
+        #if os(macOS)
+        Color(NSColor.controlBackgroundColor)
+        #else
+        Color(UIColor.secondarySystemBackground)
+        #endif
     }
 
+    private var controlTextColor: Color {
+        #if os(macOS)
+        Color(NSColor.controlTextColor)
+        #else
+        Color.primary
+        #endif
+    }
+
+    private var controlAccentColor: Color {
+        #if os(macOS)
+        Color(NSColor.controlAccentColor)
+        #else
+        Color.accentColor
+        #endif
+    }
+    
+    private var currentModel: Model? {
+        let conversation = detailModel.conversation
+        return modelManager.getModel(modelID: conversation?.modelID)
+    }
+    
+    private var currentModelMeta: ModelMeta? {
+        modelManager.getModelMeta(for: currentModel)
+    }
+    
+    private var isInputDisabled: Bool {
+        detailModel.inferring || !(currentModel?.isAvailable ?? false)
+    }
+    
+    private var inputBackgroundFill: AnyShapeStyle {
+        if isFocused && !detailModel.inferring {
+            return AnyShapeStyle(controlBackgroundColor.opacity(0.5))
+        } else if isHoveringOnInput && (currentModel?.isAvailable ?? false) {
+            return AnyShapeStyle(controlBackgroundColor.opacity(0.5))
+        } else {
+            return AnyShapeStyle(controlBackgroundColor.opacity(0.2))
+        }
+    }
+    
+    // MARK: - Sub Views
+    
+    @ViewBuilder
+    private func attachButton() -> some View {
+        Button(action: onAttachAdd) {
+            Image(systemName: "plus.circle")
+                .font(.system(size: 20))
+                .foregroundColor(isHoveringOnButton ? .accentColor : .secondary)
+                .scaleEffect(isHoveringOnButton ? 1.2 : 1.0)
+                .animation(.spring(response: 0.3, dampingFraction: 0.6), value: isHoveringOnButton)
+        }
+        .buttonStyle(.plain)
+        #if os(macOS)
+        .onHover { isHoveringOnButton = $0 }
+        #endif
+        .frame(height: minHeight)
+        .disabled(!(currentModelMeta?.mediaSupport ?? false) || detailModel.inferring || !(currentModel?.isAvailable ?? false))
+    }
+    
+    @ViewBuilder
+    private func attachmentsScrollView() -> some View {
+        if !attachments.isEmpty {
+            ScrollView(.horizontal, showsIndicators: false) {
+                HStack(spacing: 5) {
+                    ForEach(attachments) { attachment in
+                        AttachmentThumbnailView(
+                            attachment: attachment,
+                            onRemove: onAttachRemove,
+                            onReAttach: onReAttach
+                        )
+                    }
+                }
+                .padding(5)
+            }
+            .frame(height: thumbnailViewHeight)
+            .transition(.opacity.combined(with: .scale))
+        }
+    }
+    
+    @ViewBuilder
+    private func generatingIndicator() -> some View {
+        HStack {
+            Text("Generating...")
+                .font(.system(size: 14))
+                .foregroundColor(.secondary)
+                .opacity(generatingTextOpacity)
+                .onAppear {
+                    generatingTextOpacity = 1.0
+                    withAnimation(.easeInOut(duration: 1.5).repeatForever(autoreverses: true)) {
+                        generatingTextOpacity = 0.4
+                    }
+                }
+                .onDisappear {
+                    generatingTextOpacity = 1.0
+                }
+            Spacer()
+        }
+        .padding(.horizontal, 5)
+        .frame(minHeight: minHeight)
+        .hidden(isDragOver)
+    }
+    
+    @ViewBuilder
+    private func textEditorView(availableWidth: CGFloat) -> some View {
+        UltramanTextEditor(
+            text: $messageText,
+            placeholder: "Type your message…",
+            onSubmit: {
+                if !isInputDisabled {
+                    onSend()
+                    isFocused = false
+                }
+            },
+            isEnabled: !isInputDisabled
+        )
+        .font(.system(size: 14))
+        .foregroundColor(controlTextColor)
+        .accentColor(controlAccentColor)
+        .focused($isFocused)
+        #if os(macOS)
+        .onExitCommand {
+            isFocused = false
+        }
+        .onTapGesture {
+            if !isInputDisabled {
+                isFocused = true
+            }
+        }
+        #endif
+        .frame(
+            width: availableWidth,
+            height: max(
+                minHeight,
+                attachments.isEmpty ? dynamicHeight - 10 : dynamicHeight - 10 - thumbnailViewHeight
+            )
+        )
+        .padding(2)
+    }
+    
+    @ViewBuilder
+    private func inputAreaBackground() -> some View {
+        RoundedRectangle(cornerRadius: 20)
+            .fill(inputBackgroundFill)
+            .overlay {
+                inputAreaBorderOverlay()
+            }
+    }
+    
+    @ViewBuilder
+    private func inputAreaBorderOverlay() -> some View {
+        if detailModel.inferring || isFocused {
+            RoundedRectangle(cornerRadius: 20)
+                .stroke(multiColorGradientBorderForFocus.opacity(Defaults[.appleIntelligenceEffect] ? 1 : 0), lineWidth: 2)
+                .blur(radius: 4)
+        } else if isHoveringOnInput && (currentModel?.isAvailable ?? false) {
+            RoundedRectangle(cornerRadius: 20)
+                .stroke(Color.gray.opacity(0.8), lineWidth: 1)
+        } else {
+            RoundedRectangle(cornerRadius: 20)
+                .stroke(Color.gray.opacity(0.4), lineWidth: 1)
+        }
+    }
+    
+    @ViewBuilder
+    private func sendButton() -> some View {
+        Button {
+            if detailModel.inferring {
+                detailModel.inferStopping = true
+                detailModel.chatTask?.cancel()
+            } else {
+                onSend()
+            }
+        } label: {
+            sendButtonLabel()
+        }
+        .disabled(messageText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty && attachments.isEmpty && !detailModel.inferring)
+        .onChange(of: detailModel.inferring) { _, running in
+            detailModel.inferStopping = !running
+        }
+        .frame(height: minHeight)
+    }
+    
+    @ViewBuilder
+    private func sendButtonLabel() -> some View {
+        if detailModel.inferring {
+            Label("Stop", systemImage: "stop.circle.fill")
+                .symbolEffect(.variableColor, isActive: detailModel.inferStopping)
+                .foregroundColor(.primary)
+                .font(.system(size: 12, weight: .medium))
+                .padding(.horizontal, 8)
+                .frame(height: max(28, minHeight - 8))
+        } else {
+            Label("Send", systemImage: "paperplane")
+                .opacity(detailModel.inferring ? 0.7 : 1.0)
+                .font(.system(size: 12, weight: .medium))
+                .padding(.horizontal, 8)
+                .frame(height: max(28, minHeight - 8))
+        }
+    }
+    
+    @ViewBuilder
+    private func inputContentArea(availableWidth: CGFloat) -> some View {
+        VStack(spacing: 5) {
+            attachmentsScrollView()
+            
+            if detailModel.inferring {
+                generatingIndicator()
+            } else {
+                textEditorView(availableWidth: availableWidth)
+            }
+        }
+        .background { inputAreaBackground() }
+        #if os(macOS)
+        .onHover { isHoveringOnInput = $0 }
+        #endif
+        .padding(10)
+        .hidden(isDragOver)
+    }
+    
+    @ViewBuilder
+    private func mainInputRow(availableWidth: CGFloat) -> some View {
+        HStack(alignment: .center, spacing: 12) {
+            attachButton()
+            inputContentArea(availableWidth: availableWidth)
+            sendButton()
+        }
+        .onChange(of: messageText) {
+            recalculateHeight(for: availableWidth)
+        }
+        .onChange(of: attachments) {
+            recalculateHeight(for: availableWidth)
+        }
+    }
+    
+    // MARK: - Body
+    
     var body: some View {
         VStack {
             Spacer()
-
             GeometryReader { geometry in
-                HStack(alignment: .center, spacing: 12) {
-                    let conversation = detailModel.conversation
-                    let model = modelManager.getModel(modelID: conversation?.modelID)
-                    let modelMeta = modelManager.getModelMeta(for: model)
-                    
-                    Button(action: onAttachAdd) {
-                        Image(systemName: "plus.circle")
-                            .font(.system(size: 20))
-                            .foregroundColor(isHoveringOnButton ? .accentColor : .secondary)
-                            .scaleEffect(isHoveringOnButton ? 1.2 : 1.0)
-                            .animation(.spring(response: 0.3, dampingFraction: 0.6), value: isHoveringOnButton)
-                    }
-                    .buttonStyle(.plain)
-                    .onHover { isHoveringOnButton = $0 }
-                    .frame(height: minHeight)
-                    .disabled(!(modelMeta?.mediaSupport ?? false) || detailModel.inferring || !(model?.isAvailable ?? false))
-
-                    VStack(spacing: 5) {
-                        if !attachments.isEmpty {
-                            ScrollView(.horizontal, showsIndicators: false) {
-                                HStack(spacing: 5) {
-                                    ForEach(attachments) { attachment in
-                                        AttachmentThumbnailView(
-                                            attachment: attachment,
-                                            onRemove: onAttachRemove,
-                                            onReAttach: onReAttach
-                                        )
-                                    }
-                                }
-                                .padding(5)
-                            }
-                            .frame(height: thumbnailViewHeight)
-                            .transition(.opacity.combined(with: .scale))
-                        }
-
-                        if detailModel.inferring {
-                            HStack {
-                                Text("Generating...")
-                                    .font(.system(size: 14))
-                                    .foregroundColor(.secondary)
-                                    .opacity(generatingTextOpacity)
-                                    .onAppear {
-                                        generatingTextOpacity = 1.0
-                                        withAnimation(.easeInOut(duration: 1.5).repeatForever(autoreverses: true)) {
-                                            generatingTextOpacity = 0.4
-                                        }
-                                    }
-                                    .onDisappear {
-                                        generatingTextOpacity = 1.0
-                                    }
-                                Spacer()
-                            }
-                            .padding(.horizontal, 5)
-                            .frame(minHeight: minHeight)
-                            .hidden(isDragOver)
-                        } else {
-                            UltramanTextEditor(
-                                text: $messageText,
-                                placeholder: "Type your message…",
-                                onSubmit: {
-                                    onSend()
-                                    isFocused = false
-                                }
-                            )
-                            .font(.system(size: 14))
-                            .foregroundColor(Color(.controlTextColor))
-                            .accentColor(Color(.controlAccentColor))
-                            .focused($isFocused)
-                            .onExitCommand {
-                                isFocused = false
-                            }
-                            .disabled(detailModel.inferring || !(model?.isAvailable ?? false))
-                            .frame(
-                                width: geometry.size.width - 150,
-                                height: max(
-                                    minHeight,
-                                    attachments.isEmpty ? dynamicHeight - 10 : dynamicHeight - 10 - thumbnailViewHeight
-                                )
-                            )
-                            .padding(2)
-                        }
-                    }
-                    .background({
-                        RoundedRectangle(cornerRadius: 20)
-                            .fill(inputBackgroundFill)
-                            .overlay {
-                                if detailModel.inferring || isFocused {
-                                    RoundedRectangle(cornerRadius: 20)
-                                        .stroke(multiColorGradientBorderForFocus.opacity(Defaults[.appleIntelligenceEffect] ? 1 : 0), lineWidth: 2)
-                                        .blur(radius: 4)
-                                } else if isHoveringOnInput && (model?.isAvailable ?? false) {
-                                    RoundedRectangle(cornerRadius: 20)
-                                        .stroke(Color.gray.opacity(0.8), lineWidth: 1)
-                                } else {
-                                    RoundedRectangle(cornerRadius: 20)
-                                        .stroke(Color.gray.opacity(0.4), lineWidth: 1)
-                                }
-                            }
-                    })
-                    .onHover { isHoveringOnInput = $0 }
-                    .padding(10)
-                    .hidden(isDragOver)
-
-                    Button {
-                        if detailModel.inferring {
-                            detailModel.inferStopping = true
-                            detailModel.chatTask?.cancel()
-                        } else {
-                            onSend()
-                        }
-                    } label: {
-                        if detailModel.inferring {
-                            Label("Stop", systemImage: "stop.circle.fill")
-                                .symbolEffect(.variableColor, isActive: detailModel.inferStopping)
-                                .foregroundColor(.primary)
-                                .font(.system(size: 12, weight: .medium))
-                                .padding(.horizontal, 8)
-                                .frame(height: 25)
-                        } else {
-                            Label("Send", systemImage: "paperplane")
-                                .opacity(detailModel.inferring ? 0.7 : 1.0)
-                                .font(.system(size: 12, weight: .medium))
-                                .padding(.horizontal, 8)
-                                .frame(height: 25)
-                        }
-                    }
-                    .disabled(messageText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty && attachments.isEmpty && !detailModel.inferring)
-                    .onChange(of: detailModel.inferring) { _, running in
-                        detailModel.inferStopping = !running
-                    }
-                    .frame(height: minHeight)
-                }
-                .onChange(of: messageText) {
-                    recalculateHeight(for: geometry.size.width - 150)
-                }
-                .onChange(of: attachments) {
-                    recalculateHeight(for: geometry.size.width - 150)
-                }
+                let availableWidth = max(120, geometry.size.width - sideControlsWidth)
+                mainInputRow(availableWidth: availableWidth)
             }
         }
         .frame(height: dynamicHeight)
-        .padding(.horizontal, 20)
-        .padding(.bottom, 20)
+        .padding(.horizontal, horizontalPadding)
+        .padding(.bottom, {
+            #if os(macOS)
+            // macOS window corners/safe area can make the input feel "too low".
+            // Give it a bit more breathing room from the bottom edge.
+            return 24
+            #else
+            return 16
+            #endif
+        }())
         .background(Color.clear)
         .animation(.easeInOut(duration: 0.3), value: dynamicHeight)
         .animation(.spring(), value: attachments.isEmpty)
     }
 
     private func recalculateHeight(for width: CGFloat) {
+#if os(macOS)
         let textView = NSTextView()
         textView.string = messageText
         textView.font = NSFont.systemFont(ofSize: 14)
@@ -228,6 +359,13 @@ struct ConversationInputBar: View {
         textView.textContainer?.containerSize = NSSize(width: width, height: CGFloat.greatestFiniteMagnitude)
         textView.layoutManager?.ensureLayout(for: textView.textContainer!)
         let usedSize = textView.layoutManager?.usedRect(for: textView.textContainer!).size ?? .zero
+#else
+        let textView = UITextView()
+        textView.text = messageText
+        textView.font = UIFont.systemFont(ofSize: 14)
+        let fittingSize = CGSize(width: width, height: .greatestFiniteMagnitude)
+        let usedSize = textView.sizeThatFits(fittingSize)
+#endif
         
         let attachmentsHeight = attachments.isEmpty ? 0 : thumbnailViewHeight
         let textHeight = usedSize.height + 20

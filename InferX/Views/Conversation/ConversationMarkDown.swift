@@ -17,6 +17,14 @@ struct MessageWithMarkdown: View {
     @Environment(ConversationModel.self) private var conversationModel
     @Environment(ConversationDetailModel.self) private var detailModel
     @Environment(ModelManagerModel.self) var modelManager
+
+    private var controlTextColor: SwiftUI.Color {
+        #if os(macOS)
+        SwiftUI.Color(NSColor.controlTextColor)
+        #else
+        SwiftUI.Color.primary
+        #endif
+    }
     
     let messageData: MessageData
     let isBottomMessage: Bool
@@ -95,37 +103,10 @@ struct MessageWithMarkdown: View {
         VStack(alignment: .leading, spacing: 0) {
             
             if !isFold || !detailModel.foldEnable {
-                markDownView(thinkContent: thinkContent, realContent: realContent)
+                markDownView(thinkContent: thinkContent, realContent: realContent, showMenu: !detailModel.inferring || !isBottomMessage)
             } else {
                 let prefixContent = realContent.prefix(limitChar)
-                markDownView(thinkContent: thinkContent, realContent: String(prefixContent))
-            }
-  
-            if !detailModel.inferring || !isBottomMessage {
-                if detailModel.foldEnable && realContent.count > limitChar {
-                    Button(action: {
-                        withAnimation(.easeInOut(duration: 0.5)) {
-                            isFold.toggle()
-                        }
-                    }) {
-                        HStack {
-                            Spacer()
-                            Label(
-                                !isFold ? "Collapse" : "Expand All",
-                                systemImage: !isFold ? "arrow.up.right.and.arrow.down.left" : "arrow.down.right.and.arrow.up.left"
-                            )
-                            .font(.system(size: 12, design: .monospaced))
-                            .padding(.vertical, 8)
-                            Spacer()
-                        }
-                        .background(.clear)
-                    }
-                    .buttonStyle(.plain)
-                    .foregroundColor(.secondary)
-                    .padding(.horizontal, 20)
-                }
-                
-                MenuView(messageData: messageData)
+                markDownView(thinkContent: thinkContent, realContent: String(prefixContent), showMenu: !detailModel.inferring || !isBottomMessage)
             }
                 
             Spacer()
@@ -144,20 +125,55 @@ struct MessageWithMarkdown: View {
             }
         }
         .animation(.easeIn(duration: 0.5), value: isFold)
+        #if os(iOS)
+        .padding(.leading, 0)
+        #else
         .padding(.leading, 5)
+        #endif
     }
  
+    private var iconSpacing: CGFloat {
+        #if os(iOS)
+        return 6
+        #else
+        return 8
+        #endif
+    }
+
     @ViewBuilder
-    func markDownView(thinkContent: String, realContent: String) -> some View {
-        HStack(alignment: .top, spacing: 8) {
-            matchedTab(
-                modelProvider: messageData.modelProvider
-            )?.iconView() ?? Image("AppIconSidebar")
+    private var modelIconView: some View {
+        #if os(iOS)
+        if let tab = matchedTab(modelProvider: messageData.modelProvider) {
+            tab.icon
+                .resizable()
+                .scaledToFit()
+                .frame(width: 20, height: 20)
+                .clipShape(RoundedRectangle(cornerRadius: 4))
+                .shadow(color: .black.opacity(0.15), radius: 3, x: -1, y: 3)
+        } else {
+            Image("AppIconSidebar")
                 .resizable()
                 .aspectRatio(contentMode: .fit)
-                .frame(width: 25, height: 25)
-                .clipShape(RoundedRectangle(cornerRadius: 5))
-                .shadow(color: .black.opacity(0.25), radius: 5, x: -1, y: 5)
+                .frame(width: 20, height: 20)
+                .clipShape(RoundedRectangle(cornerRadius: 4))
+                .shadow(color: .black.opacity(0.15), radius: 3, x: -1, y: 3)
+        }
+        #else
+        matchedTab(
+            modelProvider: messageData.modelProvider
+        )?.iconView() ?? Image("AppIconSidebar")
+            .resizable()
+            .aspectRatio(contentMode: .fit)
+            .frame(width: 25, height: 25)
+            .clipShape(RoundedRectangle(cornerRadius: 5))
+            .shadow(color: .black.opacity(0.25), radius: 5, x: -1, y: 5)
+        #endif
+    }
+
+    @ViewBuilder
+    func markDownView(thinkContent: String, realContent: String, showMenu: Bool = false) -> some View {
+        HStack(alignment: .top, spacing: iconSpacing) {
+            modelIconView
             
             VStack(alignment: .leading, spacing: 10) {
                 TimeEscapeView(
@@ -192,11 +208,9 @@ struct MessageWithMarkdown: View {
                                     options: AttributedString.MarkdownParsingOptions(
                                       allowsExtendedAttributes: true)) {
                                     TextView(attrStr)
-                                        //.transition(.lineByLine(duration: 0.8))
                                         .animation(nil, value: parser.completedContent)
                                 } else {
                                     TextView(parser.streamingContent)
-                                        //.transition(.lineByLine(duration: 0.8))
                                         .animation(nil, value: parser.completedContent)
                                 }
                                 
@@ -208,8 +222,34 @@ struct MessageWithMarkdown: View {
                             markDownContent(processedContent.content)
                         }
                     } else {
-                        TextView(realContent)
+                        plainTextContent(realContent)
                     }
+                }
+                
+                // Fold button + Menu inside the same VStack as content
+                if showMenu {
+                    if detailModel.foldEnable && messageData.realContent.count > limitChar {
+                        Button(action: {
+                            withAnimation(.easeInOut(duration: 0.5)) {
+                                isFold.toggle()
+                            }
+                        }) {
+                            HStack {
+                                Spacer()
+                                Label(
+                                    !isFold ? "Collapse" : "Expand All",
+                                    systemImage: !isFold ? "arrow.up.right.and.arrow.down.left" : "arrow.down.right.and.arrow.up.left"
+                                )
+                                .font(.system(size: 12, design: .monospaced))
+                                .padding(.vertical, 6)
+                                Spacer()
+                            }
+                        }
+                        .buttonStyle(.plain)
+                        .foregroundColor(.secondary)
+                    }
+                    
+                    MenuView(messageData: messageData)
                 }
             }
             .task(id: realContent, priority: .high) {
@@ -227,7 +267,7 @@ struct MessageWithMarkdown: View {
                 FontFamily(.custom(fontName))
                 FontWeight(fontWeight.actualWeight)
                 FontSize(fontSize)
-                ForegroundColor(Color(.controlTextColor))
+                ForegroundColor(controlTextColor)
             }
             .processedContent(processedContent)
             .markdownTheme(MarkdownColours.enchantedThemeMedium)
@@ -259,6 +299,30 @@ struct MessageWithMarkdown: View {
     }
     
     @ViewBuilder
+    private func plainTextContent(_ content: String) -> some View {
+        let resolvedFont: SwiftUI.Font = {
+            if fontName == "System Font" {
+                return .system(size: fontSize, weight: fontWeight.actualWeight)
+            }
+            // For custom fonts, `.weight(...)` may not take effect depending on the font family,
+            // but we keep it for consistency with the Markdown renderer.
+            return .custom(fontName, size: fontSize).weight(fontWeight.actualWeight)
+        }()
+        
+        Text(verbatim: content)
+            .font(resolvedFont)
+            .foregroundStyle(controlTextColor)
+            .multilineTextAlignment(.leading)
+            .padding(10)
+            .fixedSize(horizontal: false, vertical: true)
+            .background(
+                RoundedRectangle(cornerRadius: 10)
+                    .fill(.white.opacity(backGroundRadius))
+                    .stroke(Color.white.opacity(backGroundRadius), lineWidth: 1)
+            )
+    }
+    
+    @ViewBuilder
     func popView() -> some View {
         VStack {
             ScrollView {
@@ -268,7 +332,7 @@ struct MessageWithMarkdown: View {
                         FontFamilyVariant(.monospaced)
                         FontWeight(fontWeight.actualWeight)
                         FontSize(fontSize)
-                        ForegroundColor(Color(.controlTextColor))
+                        ForegroundColor(controlTextColor)
                     }
                     .markdownTheme(MarkdownColours.enchantedThemeMedium)
                     .markdownCodeSyntaxHighlighter(.splash(theme: codeHighlightColorScheme))
@@ -285,7 +349,15 @@ struct MessageWithMarkdown: View {
                 Image(systemName: showMardDown ? "doc.plaintext" : "doc.text")
             }
         }
+        #if os(macOS)
+        #if os(macOS)
         .frame(width: 500, height: 600)
+        #else
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
+        #endif
+        #else
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
+        #endif
         .padding()
     }
 }

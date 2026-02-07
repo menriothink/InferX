@@ -10,6 +10,9 @@ import SwiftData
 import Foundation
 import UniformTypeIdentifiers
 import Defaults
+#if os(macOS)
+import AppKit
+#endif
 
 // MARK: - Attachment Data Model
 @MainActor
@@ -56,7 +59,7 @@ struct ConversationInput: View {
     @State private var attachments: [Attachment] = []
     @State private var isDragOver = false
     @State private var showingDropAlert = false
-    @State private var dropAlertMessage = ""
+    @State private var dropAlertMessage: LocalizedStringKey = ""
     
     private let flushInterval: TimeInterval = 0.5
     
@@ -404,11 +407,12 @@ struct ConversationInput: View {
     
     @MainActor
     private func attachAdd() {
+        #if os(macOS)
         let panel = NSOpenPanel()
         panel.allowsMultipleSelection = false
         panel.canChooseDirectories = false
-        panel.allowedContentTypes = FileManager.default.getSupportedFileTypes() // Use helper method
-        
+        panel.allowedContentTypes = FileManager.default.getSupportedFileTypes()
+
         if panel.runModal() == .OK {
             guard let url = panel.url else {
                 dropAlertMessage = "No file URL was selected."
@@ -417,6 +421,10 @@ struct ConversationInput: View {
             }
             addAttachment(url: url)
         }
+        #else
+        dropAlertMessage = "Attachments are currently only available on macOS."
+        showingDropAlert = true
+        #endif
     }
     
     /// Create an Attachment object from a URL and generate a thumbnail in the background
@@ -502,15 +510,16 @@ struct ConversationInput: View {
                     
                     switch completion {
                     case .finished(let uri):
-                        self.attachments[index].status = .done
                         if let uri {
+                            // Remote upload completed with URI
                             self.attachments[index].attachmentData.url = uri
                             print("✅ Attachment \(attachmentID) uploaded successfully. Remote URI: \(String(describing: uri))")
                         } else {
-                            // If the URI is nil, also treat it as an upload failure
-                            self.attachments[index].status = .pause
-                            handleError("File uploaded successfully but did not return a URI.")
+                            // Some providers (like Copilot) don't need remote upload
+                            // They handle files inline (e.g., base64 encoding)
+                            print("✅ Attachment \(attachmentID) ready for inline processing (no remote URI needed).")
                         }
+                        self.attachments[index].status = .done
                     case .failure(let simpleError):
                         self.attachments[index].status = .pause
                         handleError("File upload failed: \(simpleError.localizedDescription)")

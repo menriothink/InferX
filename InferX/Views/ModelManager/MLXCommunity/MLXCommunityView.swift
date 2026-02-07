@@ -28,8 +28,12 @@ struct MLXCommunityView: View {
 
             Spacer()
         }
+        #if os(macOS)
         .foregroundColor(Color(.controlTextColor))
         .accentColor(Color(.controlAccentColor))
+        #else
+        .foregroundColor(.primary)
+        #endif
         .task(id: SearchKey(c: sortValue, d: direction)) {
             await fetchModels()
         }
@@ -115,7 +119,13 @@ struct MLXCommunityView: View {
         }
         .background(
             RoundedRectangle(cornerRadius: 12)
-                .fill(Color(.controlBackgroundColor).opacity(0.4))
+                .fill({
+                    #if os(macOS)
+                    Color(.controlBackgroundColor)
+                    #else
+                    Color(.secondarySystemBackground)
+                    #endif
+                }().opacity(0.4))
         )
     }
     

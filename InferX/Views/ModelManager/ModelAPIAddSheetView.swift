@@ -15,12 +15,22 @@ struct ProviderPickerRowView: View {
     var body: some View {
         HStack {
             if let tab = matchedTab(modelProvider: provider) {
+                #if os(iOS)
+                tab.icon
+                    .resizable()
+                    .scaledToFit()
+                    .frame(width: 14, height: 14)
+                    .padding(.trailing, 6)
+                #else
                 tab.iconView()
                     .padding(.horizontal, 10)
                     .font(.footnote)
+                #endif
             }
             
             Text(apiName ?? provider?.rawValue ?? "")
+                .lineLimit(1)
+                .truncationMode(.tail)
         }
     }
 }
@@ -40,22 +50,37 @@ struct ModelAPIAddSheetView: View {
     @State private var errorAlert: String = ""
 
     var onCompletion: ((_ api: ModelAPI?) -> Void)?
+    
+    private var isSaveDisabled: Bool {
+        modelProvider == .none ||
+        endPoint.trimmingCharacters(in: .whitespaces).isEmpty ||
+        modelProvider == .huggingFace && directoryPathForHFModel.isEmpty ||
+        modelProvider == .huggingFace && !directoryPathErrorAlert.isEmpty
+    }
 
     var body: some View {
         VStack(spacing: 0) {
             headerView
             
             Form {
+                #if os(iOS)
+                providerMenuIOS
+                #else
                 Picker("Provider", selection: $modelProvider) {
                     ForEach(ModelProvider.allCases.filter { $0 != .none }, id: \.self) { provider in
                         ProviderPickerRowView(provider: provider).tag(provider)
                     }
                 }
                 .frame(minWidth: 200)
+                #endif
                 
                 TextField("API Name", text: $apiName)
                 
                 TextField("API Endpoint URL", text: $endPoint)
+                    #if os(iOS)
+                    .textInputAutocapitalization(.never)
+                    .keyboardType(.URL)
+                    #endif
                 
                 SecureField("API Key", text: $apiKey)
                 
@@ -66,6 +91,7 @@ struct ModelAPIAddSheetView: View {
                                 checkDirForHFModel()
                             }
                         
+                        #if os(macOS)
                         Button(action: {
                             directoryPathForHFModel = FileManager.default.openDirectorySelectionPanel(
                                 selectedModelDir: URL(fileURLWithPath: directoryPathForHFModel)
@@ -75,6 +101,7 @@ struct ModelAPIAddSheetView: View {
                         }) {
                             Image(systemName: "folder.badge.gearshape")
                         }
+                        #endif
                     }
                 }
                 
@@ -87,22 +114,67 @@ struct ModelAPIAddSheetView: View {
                 }
                 .font(.headline)
                 .foregroundStyle(.red)
+                #if os(macOS)
                 .frame(width: 400)
+                #else
+                .frame(maxWidth: .infinity)
+                #endif
                 .fixedSize(horizontal: true, vertical: false)
                 .padding(.bottom, 50)
             }
             .formStyle(.grouped)
             .padding(.horizontal)
-            
+            #if os(macOS)
             footerButtons
+            #endif
         }
+        #if os(macOS)
         .frame(width: 480, height: 400)
+        #else
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
+        #endif
         .task(id: modelProvider) {
             apiName = modelManager.generateUniqueDefaultAPIName(for: modelProvider)
             endPoint = modelProvider.endPoint
         }
+        #if os(iOS)
+        .safeAreaInset(edge: .bottom) {
+            footerButtonsIOS
+        }
+        #endif
     }
     
+    #if os(iOS)
+    private var providerMenuIOS: some View {
+        Menu {
+            ForEach(ModelProvider.allCases.filter { $0 != .none }, id: \.self) { provider in
+                Button(provider.rawValue) {
+                    modelProvider = provider
+                }
+            }
+        } label: {
+            HStack {
+                Text("Provider")
+                Spacer()
+                HStack(spacing: 6) {
+                    if let tab = matchedTab(modelProvider: modelProvider) {
+                        tab.icon
+                            .resizable()
+                            .scaledToFit()
+                            .frame(width: 12, height: 12)
+                    }
+                    Text(modelProvider.rawValue)
+                        .foregroundStyle(.secondary)
+                }
+                Image(systemName: "chevron.up.chevron.down")
+                    .font(.footnote)
+                    .foregroundStyle(.secondary)
+            }
+        }
+        .buttonStyle(.plain)
+    }
+    #endif
+
     @ViewBuilder
     private var headerView: some View {
         HStack {
@@ -126,15 +198,29 @@ struct ModelAPIAddSheetView: View {
             Button("Cancel", role: .cancel, action: cancel)
             Button("Save", action: save)
                 .keyboardShortcut(.defaultAction)
-                .disabled(
-                    modelProvider == .none ||
-                    endPoint.trimmingCharacters(in: .whitespaces).isEmpty ||
-                    modelProvider == .huggingFace && directoryPathForHFModel.isEmpty ||
-                    modelProvider == .huggingFace && !directoryPathErrorAlert.isEmpty
-                )
+                .disabled(isSaveDisabled)
         }
         .padding()
     }
+
+    #if os(iOS)
+    @ViewBuilder
+    private var footerButtonsIOS: some View {
+        VStack(spacing: 8) {
+            Divider()
+            HStack {
+                Button("Cancel", role: .cancel, action: cancel)
+                Spacer()
+                Button("Save", action: save)
+                    .buttonStyle(.borderedProminent)
+                    .disabled(isSaveDisabled)
+            }
+            .padding(.horizontal)
+            .padding(.bottom, 8)
+        }
+        .background(.ultraThinMaterial)
+    }
+    #endif
 
     private func save() {
         if modelProvider == .huggingFace {

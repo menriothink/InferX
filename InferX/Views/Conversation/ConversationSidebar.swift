@@ -6,57 +6,135 @@
 //
 
 import Defaults
-import Luminare
 import SwiftUI
 import SwiftData
+#if os(macOS)
+import AppKit
+#elseif os(iOS)
+import UIKit
+#endif
 
 struct ConversationSidebar: View {
     @Environment(\.colorScheme) private var colorScheme
     @Environment(ConversationModel.self) private var conversationModel
+    #if os(iOS)
+    @Environment(SettingsModel.self) private var settingsModel
+    #endif
 
     @State private var showingFiletedConversation = false
     @State private var isHovering = false
     
     let rowHeight: CGFloat = 40
+    private let searchBarHeight: CGFloat = {
+        #if os(iOS)
+        return 36
+        #else
+        return 20
+        #endif
+    }()
+    private let sidebarTopPadding: CGFloat = {
+        #if os(iOS)
+        return 8
+        #else
+        return 20
+        #endif
+    }()
+    private let topSectionVerticalPadding: CGFloat = {
+        #if os(iOS)
+        return 12
+        #else
+        return 20
+        #endif
+    }()
 
     var body: some View {
+        contentStack
+            .padding(.top, sidebarTopPadding)
+            #if os(macOS)
+            .frame(width: 200)
+            #else
+            .frame(maxWidth: .infinity)
+            #endif
+    }
+    
+    private var contentStack: some View {
+        ZStack {
+            backgroundView
+            mainContent
+        }
+    }
+    
+    private var mainContent: some View {
         VStack(alignment: .trailing, spacing: 0) {
-            HStack(alignment: .bottom) {
-                @Bindable var conversationModel = conversationModel
-                UltramanTextField(
-                        $conversationModel.searchText,
-                        placeholder: Text("Search Conversation..."),
-                        onSubmit: {
-                            filteredConversations(conversationModel.searchText)
-                        }
-                )
-                .onHover { isHovering = $0 }
-                .background(
-                    RoundedRectangle(cornerRadius: 12)
-                        .fill(isHovering ? Color(.unemphasizedSelectedContentBackgroundColor).opacity(1) : Color(.unemphasizedSelectedContentBackgroundColor).opacity(0.4))
-                )
-                .animation(.easeInOut(duration: 0.2), value: isHovering)
-                .foregroundColor(Color(.controlTextColor))
-                .accentColor(Color(.controlAccentColor))
-                
-                Toggle(isOn: $conversationModel.includeMessageContent) {
-                    EmptyView()
-                }
-                .toggleStyle(.checkbox)
-                .help("Include message content when searching")
-            }
-            .frame(height: 20)
-            .padding(.vertical, 20)
-            .padding(.leading, 5)
+            #if os(iOS)
+            headerBar
+            #endif
+            topSection
+            conversationListView
+            createSessionButton
+            #if os(macOS)
+            Spacer()
+            #endif
+        }
+    }
 
-            ScrollView {
-                LazyVStack(spacing: 1) {
-                    ForEach(conversationModel.filteredConversations) { conversation in
-                        ConversationSidebarItem(conversation: conversation)
-                            .padding(.horizontal, 5)
+    #if os(iOS)
+    private var headerBar: some View {
+        HStack(spacing: 12) {
+            Color.clear
+                .frame(width: 28, height: 28)
+
+            Spacer()
+
+            Capsule()
+                .fill(Color.secondary.opacity(0.35))
+                .frame(width: 40, height: 5)
+
+            Spacer()
+
+            Button {
+                withAnimation(.easeInOut(duration: 0.25)) {
+                    settingsModel.sidebarState = .none
+                }
+            } label: {
+                Image(systemName: "xmark.circle.fill")
+                    .font(.system(size: 18))
+                    .foregroundStyle(.secondary)
+                    .frame(width: 28, height: 28)
+            }
+            .buttonStyle(.plain)
+        }
+        .padding(.horizontal, 8)
+        .padding(.bottom, 6)
+        .contentShape(Rectangle())
+        .highPriorityGesture(
+            DragGesture(minimumDistance: 25)
+                .onEnded { value in
+                    let horizontal = value.translation.width
+                    let vertical = abs(value.translation.height)
+                    guard abs(horizontal) > vertical else { return }
+                    if horizontal < -50 {
+                        withAnimation(.easeInOut(duration: 0.25)) {
+                            settingsModel.sidebarState = .none
+                        }
                     }
                 }
-            }
+        )
+    }
+    #endif
+    
+    private var topSection: some View {
+        VStack(alignment: .leading, spacing: 6) {
+            searchBarView
+                .frame(height: searchBarHeight)
+            searchScopeHintView
+        }
+        .padding(.vertical, topSectionVerticalPadding)
+        .padding(.leading, 5)
+    }
+    
+    private var conversationListView: some View {
+        scrollViewContent
             .task(id: conversationModel.conversationChanged) {
                 if conversationModel.searchText.isEmpty {
                     loadConversations(conversationModel.searchText)
@@ -69,32 +147,175 @@ struct ConversationSidebar: View {
                         .padding(.vertical, 8)
                 }
             }
-            
-            UltraButtonView(
-                fontSize: 12,
-                text: "Create a new session") {
-                    withAnimation(.easeInOut(duration: 0.2)) {
-                        conversationModel.createConversation()
+    }
+    
+    private var scrollViewContent: some View {
+        #if os(iOS)
+        List {
+            ForEach(conversationModel.filteredConversations) { conversation in
+                ConversationSidebarItem(conversation: conversation)
+                    .listRowInsets(EdgeInsets(top: 2, leading: 5, bottom: 2, trailing: 5))
+                    .listRowSeparator(.hidden)
+                    .listRowBackground(Color.clear)
+                    .swipeActions(edge: .trailing, allowsFullSwipe: true) {
+                        Button(role: .destructive) {
+                            Task {
+                                await conversationModel.detailModel(for: conversation).deleteAllMessages()
+                                conversationModel.deleteConversation(conversation: conversation)
+                            }
+                        } label: {
+                            Label("Delete", systemImage: "trash")
+                        }
                     }
-                }
-                .frame(width: 180)
-                .padding(10)
-                .padding(.top, 20)
-            
-            Spacer()
+                    .swipeActions(edge: .leading, allowsFullSwipe: false) {
+                        Button {
+                            // 置顶：更新 updatedAt 让它排到最前面
+                            conversation.updatedAt = Date()
+                            loadConversations(conversationModel.searchText)
+                        } label: {
+                            Label("Pin", systemImage: "pin")
+                        }
+                        .tint(.orange)
+                    }
+            }
         }
-        .padding(.top, 20)
-        .frame(width: 200)
-        .transition(.move(edge: .leading))
+        .listStyle(.plain)
         .scrollContentBackground(.hidden)
-        .background {
-            VisualEffectView(
-                material: .hudWindow,
-                blendingMode: .behindWindow,
-                state: .active
+        #else
+        ScrollView {
+            LazyVStack(spacing: 1) {
+                ForEach(conversationModel.filteredConversations) { conversation in
+                    ConversationSidebarItem(conversation: conversation)
+                        .padding(.horizontal, 5)
+                }
+            }
+        }
+        #endif
+    }
+    
+    private var createSessionButton: some View {
+        buttonContent
+            #if os(macOS)
+            .frame(width: 180)
+            #else
+            .frame(maxWidth: .infinity)
+            #endif
+            .padding(10)
+            .padding(.top, 20)
+    }
+    
+    private var buttonContent: some View {
+        UltraButtonView(
+            fontSize: 12,
+            text: "Create a new session") {
+                withAnimation(.easeInOut(duration: 0.2)) {
+                    conversationModel.createConversation()
+                }
+            }
+    }
+    
+    @ViewBuilder
+    private var backgroundView: some View {
+#if os(macOS)
+        EffectView(
+            .hudWindow,
+            blendingMode: .behindWindow,
+            emphasized: true
+        )
+#else
+        EffectView(
+            .systemMaterial,
+            emphasized: true
+        )
+#endif
+    }
+    
+    private var searchBarView: some View {
+        HStack(alignment: .center, spacing: 8) {
+            textFieldView
+            toggleView
+        }
+    }
+    
+    private var textFieldView: some View {
+        searchTextField(for: conversationModel)
+            .frame(maxWidth: .infinity)
+    }
+    
+    private var toggleView: some View {
+        searchToggle(for: conversationModel)
+            .fixedSize()
+    }
+
+    private var searchScopeHintView: some View {
+        HStack(spacing: 6) {
+            Image(systemName: conversationModel.includeMessageContent ? "globe" : "list.bullet")
+            Text(
+                conversationModel.includeMessageContent
+                    ? "Search all sessions (including messages)"
+                    : "Search session list only"
             )
         }
-        .onTapGesture{}
+        .font(.caption2)
+        .foregroundStyle(.secondary)
+        .padding(.leading, 6)
+        .lineLimit(2)
+        .accessibilityLabel(
+            conversationModel.includeMessageContent
+                ? Text("Search all sessions (including messages)")
+                : Text("Search session list only")
+        )
+    }
+    
+    private func searchTextField(for model: ConversationModel) -> some View {
+        @Bindable var conversationModel = model
+        
+        let textField = UltramanTextField(
+            $conversationModel.searchText,
+            placeholder: Text("Search Conversation..."),
+            onSubmit: {
+                filteredConversations(conversationModel.searchText)
+            }
+        )
+        .onHover { isHovering = $0 }
+        
+#if os(macOS)
+        return textField
+            .background(RoundedRectangle(cornerRadius: 12).fill(isHovering ? Color(nsColor: .unemphasizedSelectedContentBackgroundColor).opacity(1) : Color(nsColor: .unemphasizedSelectedContentBackgroundColor).opacity(0.4)))
+            .animation(.easeInOut(duration: 0.2), value: isHovering)
+            .foregroundColor(Color(nsColor: .controlTextColor))
+            .accentColor(Color(nsColor: .controlAccentColor))
+#else
+        return textField
+            .background(RoundedRectangle(cornerRadius: 12).fill(isHovering ? Color(uiColor: .systemGray6).opacity(1) : Color(uiColor: .systemGray6).opacity(0.4)))
+            .animation(.easeInOut(duration: 0.2), value: isHovering)
+            .foregroundColor(Color.primary)
+            .accentColor(Color.accentColor)
+#endif
+    }
+    
+    private func searchToggle(for model: ConversationModel) -> some View {
+        @Bindable var conversationModel = model
+        
+        let includeMessageBinding = Binding(
+            get: { conversationModel.includeMessageContent },
+            set: { newValue in
+                conversationModel.includeMessageContent = newValue
+                filteredConversations(conversationModel.searchText)
+            }
+        )
+        
+        return Toggle(isOn: includeMessageBinding) {
+            Text("Global")
+                .font(.caption2)
+        }
+#if os(macOS)
+        .toggleStyle(.checkbox)
+        .controlSize(.small)
+#else
+        .toggleStyle(.switch)
+#endif
+        .help("Include message content when searching")
     }
     
     private func filteredConversations(_ keyword: String) {

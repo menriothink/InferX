@@ -6,6 +6,9 @@
 //
 
 import SwiftUI
+#if os(macOS)
+import AppKit
+#endif
 
 public enum ImageFormat {
     case png
@@ -13,6 +16,7 @@ public enum ImageFormat {
 }
 
 extension Image {
+#if os(macOS)
     @MainActor
     func toNSImage(size: CGSize) -> NSImage? {
         if #available(macOS 13.0, *) {
@@ -36,6 +40,7 @@ extension Image {
             return nsImage
         }
     }
+#endif
     
     init?(data: Data?) {
         guard let data else { return nil }
@@ -102,6 +107,7 @@ extension Image {
 // iOS 16.0+, macOS 13.0+
 @available(iOS 16.0, macOS 13.0, tvOS 16.0, watchOS 9.0, *)
 private extension ImageRenderer {
+    @MainActor
     var platformImage: PlatformImage? {
         #if canImport(UIKit)
         return self.uiImage

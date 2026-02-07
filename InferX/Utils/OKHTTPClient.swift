@@ -20,6 +20,7 @@ actor OKHTTPClient {
     func setProxy(proxyHost: String? = nil, proxyPort: UInt32? = nil) {
         if let host = proxyHost, let port = proxyPort, !host.isEmpty {
             print("🔧 Configuring URLSession configuration with proxy: \(host):\(port)")
+            #if os(macOS)
             self.proxiedUrlConfiguration = .default
             self.proxiedUrlConfiguration?.connectionProxyDictionary = [
                 kCFNetworkProxiesHTTPEnable: 1,
@@ -29,6 +30,10 @@ actor OKHTTPClient {
                 kCFNetworkProxiesHTTPSProxy: host,
                 kCFNetworkProxiesHTTPSPort: port
             ]
+            #else
+            self.proxiedUrlConfiguration = nil
+            print("⚠️ Proxy configuration is only supported on macOS builds.")
+            #endif
         } else {
             self.proxiedUrlConfiguration = nil
             print("🔧 Configuring URLSession configuration without proxy.")

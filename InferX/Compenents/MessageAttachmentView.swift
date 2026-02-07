@@ -5,21 +5,45 @@
 //  Created by mingdw on 2025/4/6.
 //
 
-import AlertToast
 import SwiftUI
 import AVKit
+
+#if os(macOS)
 import AppKit
 
 struct MessageAttachmentView: View {
+    @Environment(\.locale) private var locale
+    @Environment(\.layoutDirection) private var layoutDirection
     var attachmentData: AttachmentData
-    
+
     @State private var showingAlert = false
-    @State private var alertMessage = ""
+    @State private var alertMessage: LocalizedStringKey = ""
     @State private var showingImageViewer = false
     @State private var showingVideoPlayer = false
     @State private var fileURL: URL?
     @State private var imageData: Data?
     @State private var isHovered = false
+
+    private var resolvedURL: URL? {
+        var bookmark = attachmentData.bookmark
+        return FileManager.default.getResolvedURL(from: &bookmark)
+    }
+
+    private var fileName: String {
+        resolvedURL?.lastPathComponent ?? "Attachment"
+    }
+
+    private var fileExtension: String {
+        resolvedURL?.pathExtension.lowercased() ?? ""
+    }
+
+    private var isImageFile: Bool {
+        ["jpg", "jpeg", "png", "gif", "bmp", "tiff", "heic", "webp"].contains(fileExtension)
+    }
+
+    private var isVideoFile: Bool {
+        ["mp4", "mov", "m4v", "avi", "mkv", "wmv", "flv"].contains(fileExtension)
+    }
 
     var body: some View {
         VStack(spacing: 4) {
@@ -50,199 +74,96 @@ struct MessageAttachmentView: View {
                     .shadow(color: isHovered ? .black.opacity(0.3) : .clear, radius: 8)
             }
             .buttonStyle(.plain)
-            .help(isVideoFile ? "点击播放视频" : (isImageFile ? "点击查看大图" : "点击打开文件"))
+            .help(isVideoFile ? "Tap to play video" : (isImageFile ? "Tap to view image" : "Tap to open file"))
             .onHover { hovering in
                 withAnimation(.easeInOut(duration: 0.2)) {
                     isHovered = hovering
                 }
             }
             .contextMenu {
-                /*Button("在 Finder 中显示") {
-                    showInFinder()
-                }
-
-                if isImageFile {
-                    Button("用预览打开") {
-                        openWithPreview()
-                    }
-                }
-
-                if isVideoFile {
-                    Button("用 QuickTime 播放") {
-                        openWithQuickTime()
-                    }
-                }*/
-
-                Button("拷贝文件路径") {
+                Button {
                     copyFilePath()
-                }
-
-                Divider()
-
-                Button("获取信息") {
-                    showFileInfo()
+                } label: {
+                    Text("Copy File Path")
                 }
             }
 
-            if let fileName = getFileName() {
-                Text(fileName)
-                    .font(.caption2)
-                    .foregroundColor(.secondary)
-                    .lineLimit(1)
-                    .multilineTextAlignment(.center)
-                    .frame(width: 80)
-            }
+            Text(truncatedFileName(fileName))
+                .lineLimit(2)
+                .multilineTextAlignment(.center)
+                .font(.caption)
+                .foregroundStyle(.primary)
+                .frame(width: 80)
+                .padding(.top, 2)
         }
-        .alert("文件操作", isPresented: $showingAlert) {
-            Button("确定", role: .cancel) { }
-        } message: {
-            Text(alertMessage)
+        .onAppear {
+            fileURL = resolvedURL
+            imageData = attachmentData.thumbnail
         }
         .sheet(isPresented: $showingImageViewer) {
-            if let data = imageData, let fileName = getFileName() {
+            if let data = imageData {
                 MacImageViewer(imageData: data, fileName: fileName)
+                    .environment(\.locale, locale)
+                    .environment(\.layoutDirection, layoutDirection)
             }
         }
         .sheet(isPresented: $showingVideoPlayer) {
-            if let url = fileURL {
-                MacVideoPlayer(videoURL: url)
+            if let fileURL {
+                MacVideoPlayer(videoURL: fileURL)
+                    .environment(\.locale, locale)
+                    .environment(\.layoutDirection, layoutDirection)
             }
+        }
+        .alert(isPresented: $showingAlert) {
+            Alert(title: Text("Notice"), message: Text(alertMessage), dismissButton: .default(Text("OK")))
         }
     }
 
     private func handleThumbnailTap() {
-        let success = FileManager.default.accessFile(from: attachmentData.bookmark) { url -> Bool in
-            guard FileManager.default.fileExists(atPath: url.path) else {
-                return false
-            }
+        guard let url = resolvedURL else { return }
 
-            self.fileURL = url
-
-            if isImageFile {
-                do {
-                    let data = try Data(contentsOf: url)
-                    DispatchQueue.main.async {
-                        self.imageData = data
-                        self.showingImageViewer = true
-                    }
-                } catch {
-                    DispatchQueue.main.async {
-                        self.alertMessage = "无法读取图片文件: \(error.localizedDescription)"
-                        self.showingAlert = true
-                    }
-                    return false
-                }
-            } else if isVideoFile {
-                DispatchQueue.main.async {
-                    self.showingVideoPlayer = true
-                }
-            } else {
-                NSWorkspace.shared.open(url)
-            }
-
-            return true
-        }
-
-        if success == nil {
-            alertMessage = "无法访问文件，可能已被移动或删除"
-            showingAlert = true
-        } else if success == false {
-            alertMessage = "文件不存在或无法读取"
-            showingAlert = true
-        }
-    }
-
-    private func getFileName() -> String? {
-        var bookmark = attachmentData.bookmark
-        return FileManager.default.getResolvedURL(from: &bookmark)?.lastPathComponent
-    }
-
-    private func showInFinder() {
-        FileManager.default.accessFile(from: attachmentData.bookmark) { url -> Void in
-            NSWorkspace.shared.selectFile(url.path, inFileViewerRootedAtPath: "")
-        }
-    }
-
-    private func openWithPreview() {
-        var isStale = false
-        do {
-            let url = try URL(resolvingBookmarkData: attachmentData.bookmark,
-                                options: .withSecurityScope,
-                                relativeTo: nil,
-                                bookmarkDataIsStale: &isStale)
-
-            guard let url = FileManager.default.securityAccessFile(url: url) else {
-                print("❌ 无法开始对 URL 的安全访问。")
+        if isImageFile {
+            guard let securedURL = FileManager.default.securityAccessFile(url: url) else {
+                alertMessage = "Unable to start security-scoped access to the URL."
+                showingAlert = true
                 return
             }
 
-            let openConfiguration = NSWorkspace.OpenConfiguration()
-            openConfiguration.promptsUserIfNeeded = true
+            defer { securedURL.stopAccessingSecurityScopedResource() }
 
-            NSWorkspace.shared.open(
-                [url],
-                withApplicationAt: URL(fileURLWithPath: "/System/Applications/Preview.app"),
-                configuration: openConfiguration
-            ) { runningApplication, error in
-
-                url.stopAccessingSecurityScopedResource()
-
-                if let error = error {
-                    print("🚨 打开 '预览.app' 失败: \(error.localizedDescription)")
-                } else {
-                    print("✅ 成功请求 '预览.app' 打开文件。")
-                }
+            if let data = try? Data(contentsOf: securedURL) {
+                imageData = data
+                showingImageViewer = true
+            } else {
+                alertMessage = "Failed to read image file."
+                showingAlert = true
             }
-
-        } catch {
-            print("🚨 解析书签失败: \(error.localizedDescription)")
+        } else if isVideoFile {
+            showingVideoPlayer = true
+        } else {
+            openFile(url)
         }
     }
 
-    private func openWithQuickTime() {
-        FileManager.default.accessFile(from: attachmentData.bookmark) { url -> Void in
-            NSWorkspace.shared.open([url], withApplicationAt: URL(fileURLWithPath: "/System/Applications/QuickTime Player.app"), configuration: NSWorkspace.OpenConfiguration()) { _, _ in }
+    private func openFile(_ url: URL) {
+        guard let fileUrl = FileManager.default.securityAccessFile(url: url) else {
+            alertMessage = "Unable to start security-scoped access to the URL."
+            showingAlert = true
+            return
         }
+
+        defer { fileUrl.stopAccessingSecurityScopedResource() }
+        NSWorkspace.shared.open(fileUrl)
     }
 
     private func copyFilePath() {
-        FileManager.default.accessFile(from: attachmentData.bookmark) { url -> Void in
-            let pasteboard = NSPasteboard.general
-            pasteboard.clearContents()
-            pasteboard.setString(url.path, forType: .string)
-        }
+        guard let fileURL else { return }
+        let pasteboard = NSPasteboard.general
+        pasteboard.clearContents()
+        pasteboard.setString(fileURL.path, forType: .string)
     }
 
-    private func showFileInfo() {
-        FileManager.default.accessFile(from: attachmentData.bookmark) { url -> Void in
-            NSWorkspace.shared.activateFileViewerSelecting([url])
-        }
-    }
-
-    private var isImageFile: Bool {
-        guard let filePath = getFilePath() else { return false }
-        let fileExtension = URL(fileURLWithPath: filePath).pathExtension.lowercased()
-        return ["jpg", "jpeg", "png", "gif", "bmp", "tiff", "heic", "webp"].contains(fileExtension)
-    }
-
-    private var isVideoFile: Bool {
-        guard let filePath = getFilePath() else { return false }
-        let fileExtension = URL(fileURLWithPath: filePath).pathExtension.lowercased()
-        return ["mp4", "mov", "avi", "mkv", "wmv", "flv", "m4v"].contains(fileExtension)
-    }
-
-    private func getFilePath() -> String? {
-        var bookmark = attachmentData.bookmark
-        return FileManager.default.getResolvedURL(from: &bookmark)?.path
-    }
-
-    private func truncateFileName(_ fileName: String) -> String {
-        let maxLength = 12
-
-        if fileName.count <= maxLength {
-            return fileName
-        }
-
+    private func truncatedFileName(_ fileName: String, maxLength: Int = 15) -> String {
         let url = URL(fileURLWithPath: fileName)
         let nameWithoutExtension = url.deletingPathExtension().lastPathComponent
         let fileExtension = url.pathExtension
@@ -270,7 +191,7 @@ struct MacImageViewer: View {
                 Text(fileName)
                     .font(.headline)
                 Spacer()
-                Button("完成") { dismiss() }
+                Button("Done") { dismiss() }
                     .keyboardShortcut(.escape, modifiers: [])
             }
             .padding()
@@ -278,6 +199,7 @@ struct MacImageViewer: View {
             .opacity(isZoomed ? 0 : 1)
             .zIndex(1)
 
+#if os(macOS)
             if let nsImage = NSImage(data: imageData) {
                 Image(nsImage: nsImage)
                     .resizable()
@@ -290,10 +212,28 @@ struct MacImageViewer: View {
                         }
                     }
             } else {
-                Text("无法加载图片")
+                Text("Unable to load image")
                     .foregroundColor(.secondary)
                     .frame(maxWidth: .infinity, maxHeight: .infinity)
             }
+#else
+            if let uiImage = UIImage(data: imageData) {
+                Image(uiImage: uiImage)
+                    .resizable()
+                    .aspectRatio(contentMode: isZoomed ? .fill : .fit)
+                    .frame(maxWidth: .infinity, maxHeight: .infinity)
+                    .ignoresSafeArea(edges: isZoomed ? .all : [])
+                    .onTapGesture {
+                        withAnimation(.easeInOut(duration: 0.3)) {
+                            isZoomed.toggle()
+                        }
+                    }
+            } else {
+                Text("Unable to load image")
+                    .foregroundColor(.secondary)
+                    .frame(maxWidth: .infinity, maxHeight: .infinity)
+            }
+#endif
         }
         .frame(minWidth: 500, idealWidth: 800, maxWidth: .infinity,
                minHeight: 400, idealHeight: 600, maxHeight: .infinity)
@@ -312,7 +252,7 @@ struct MacVideoPlayer: View {
                 Text(videoURL.lastPathComponent)
                     .font(.headline)
                 Spacer()
-                Button("完成") {
+                Button("Done") {
                     dismiss()
                 }
                 .keyboardShortcut(.escape, modifiers: [])
@@ -326,14 +266,14 @@ struct MacVideoPlayer: View {
                         player.pause()
                     }
             } else {
-                Text("正在加载视频...")
+                Text("Loading video...")
                     .frame(minWidth: 600, minHeight: 400)
                     .onAppear {
-                        guard let videoURL = FileManager.default.securityAccessFile(url: videoURL) else {
+                        guard let securedURL = FileManager.default.securityAccessFile(url: videoURL) else {
                             print("❌ 无法开始对 URL 的安全访问。")
                             return
                         }
-                        self.player = AVPlayer(url: videoURL)
+                        self.player = AVPlayer(url: securedURL)
                     }
             }
         }
@@ -344,3 +284,41 @@ struct MacVideoPlayer: View {
         }
     }
 }
+
+#else
+import UIKit
+
+struct MessageAttachmentView: View {
+    var attachmentData: AttachmentData
+
+    var body: some View {
+        VStack(spacing: 4) {
+            let thumbnail = Image(data: attachmentData.thumbnail) ?? Image(systemName: "doc")
+            thumbnail
+                .resizable()
+                .scaledToFill()
+                .frame(width: 80, height: 80)
+                .clipShape(RoundedRectangle(cornerRadius: 8))
+                .overlay(
+                    RoundedRectangle(cornerRadius: 8)
+                        .stroke(Color.gray.opacity(0.3), lineWidth: 1)
+                )
+
+            Text(resolvedFileName)
+                .lineLimit(2)
+                .multilineTextAlignment(.center)
+                .font(.caption)
+                .foregroundStyle(.primary)
+                .frame(width: 80)
+                .padding(.top, 2)
+        }
+    }
+
+    private var resolvedFileName: String {
+        var bookmark = attachmentData.bookmark
+        let url = FileManager.default.getResolvedURL(from: &bookmark)
+        return url?.lastPathComponent ?? "Attachment"
+    }
+}
+
+#endif

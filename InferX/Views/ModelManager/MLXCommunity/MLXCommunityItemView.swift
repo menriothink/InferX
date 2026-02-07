@@ -79,6 +79,7 @@ struct MLXCommunityItemView: View {
                 }
             }
 
+            #if os(macOS)
             Button(action: {
                 if let url = URL(
                     string: "https://huggingface.co/\(remoteHFModel.id)")
@@ -88,6 +89,13 @@ struct MLXCommunityItemView: View {
             }) {
                 Image(systemName: "safari")
             }
+            #else
+            if let url = URL(string: "https://huggingface.co/\(remoteHFModel.id)") {
+                Link(destination: url) {
+                    Image(systemName: "safari")
+                }
+            }
+            #endif
         }
         .buttonStyle(DarkenOnPressButtonCircleStyle())
     }

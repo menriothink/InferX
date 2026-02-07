@@ -8,6 +8,8 @@
 import Defaults
 
 enum Language: String, CaseIterable, Identifiable, Defaults.Serializable {
+    /// Follow system/app language set in iOS/macOS settings.
+    case system = "system"
     case english = "en"
     case arabic = "ar"
     case chineseHongKong = "zh-HK"
@@ -53,6 +55,7 @@ enum Language: String, CaseIterable, Identifiable, Defaults.Serializable {
 
     var displayName: String {
         switch self {
+        case .system: return "System"
         case .english: return "English"
         case .arabic: return "العربية"
         case .chineseHongKong: return "中文（香港）"

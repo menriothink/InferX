@@ -12,6 +12,9 @@ import SwiftSoup
 import WebKit
 import MarkdownUI
 import SwiftData
+#if canImport(UIKit)
+import UIKit
+#endif
 
 // MARK: - Data Structures
 struct ProcessedContent {
@@ -423,19 +426,22 @@ func inlineRewriter(_ text: String, _ container: AttributeContainer) -> Attribut
 }
 
 private func renderInlineLatex(_ latexString: String, fontSize: CGFloat, fontColor: Color) -> Text {
-
-    let (_, nsImage) = MTMathImage(
+    let (_, platformImage) = MTMathImage(
         latex: latexString,
         fontSize: fontSize,
         textColor: MTColor(fontColor),
         labelMode: .text
     ).asImage()
 
-    guard let nsImage else { return Text(latexString).foregroundColor(.red) }
+    guard let platformImage else { return Text(latexString).foregroundColor(.red) }
 
-    // Align baseline
-    let baselineOffset = -((nsImage.size.height / 2) - (fontSize / 2) + 2)
-    return Text(Image(nsImage: nsImage)).baselineOffset(baselineOffset)
+#if os(macOS)
+    let baselineOffset = -((platformImage.size.height / 2) - (fontSize / 2) + 2)
+    return Text(Image(nsImage: platformImage)).baselineOffset(baselineOffset)
+#else
+    let baselineOffset = -((platformImage.size.height / 2) - (fontSize / 2) + 2)
+    return Text(Image(uiImage: platformImage)).baselineOffset(baselineOffset)
+#endif
 }
 
 private func restoreInlineHTML(_ htmlString: String, baseAttributes: AttributeContainer) -> AttributedString? {
@@ -672,11 +678,19 @@ private func highlightGeneralKeywords(
     return mutableAttributedText
 }
 
+#if os(macOS)
 func extractNSFont(from run: AttributedString.Runs.Run, in attributedString: AttributedString) -> NSFont? {
     let slice = attributedString[run.range]
     let nsAttr = NSAttributedString(AttributedString(slice))
     return nsAttr.attribute(.font, at: 0, effectiveRange: nil) as? NSFont
 }
+#else
+func extractNSFont(from run: AttributedString.Runs.Run, in attributedString: AttributedString) -> UIFont? {
+    let slice = attributedString[run.range]
+    let uiAttr = NSAttributedString(AttributedString(slice))
+    return uiAttr.attribute(.font, at: 0, effectiveRange: nil) as? UIFont
+}
+#endif
 
 // MARK: - Custom Block Views
 
@@ -692,7 +706,7 @@ struct LatexBlockView: View {
     var body: some View {
         let textColor = colorScheme == .dark ? Color.white : Color.black
 
-        let (_, nsImage) = MTMathImage(
+        let (_, platformImage) = MTMathImage(
             latex: latexString,
             fontSize: fontSize,
             textColor: MTColor(textColor),
@@ -702,16 +716,19 @@ struct LatexBlockView: View {
 
         HStack {
             Spacer()
-            if let image = nsImage {
-                Text(Image(nsImage: image))
+            if let image = platformImage {
+                #if os(macOS)
+                Image(nsImage: image)
                     .padding()
+                #else
+                Image(uiImage: image)
+                    .padding()
+                #endif
             } else {
                 MathWebView(latexString: latexString,
                             fontSize: fontSize,
                             cssWeight: fontWeight.rawValue,
                             webViewHeight: $webViewHeight)
-                /*Text("Failed to render LaTeX:\n\(latexString)")
-                    .foregroundColor(.red)*/
                     .frame(height: webViewHeight)
                     .padding()
             }

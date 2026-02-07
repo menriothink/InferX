@@ -7,6 +7,9 @@
 
 import SwiftUI
 import Foundation
+#if os(iOS)
+import UIKit
+#endif
 
 extension Color {
     func adaptiveBackground(for colorScheme: ColorScheme) -> Color {
@@ -41,12 +44,17 @@ extension Color {
     }
     
     func toHSB() -> (hue: CGFloat, saturation: CGFloat, brightness: CGFloat) {
-        let nsColor = NSColor(self).usingColorSpace(.deviceRGB) ?? NSColor.black
+        #if os(macOS)
+        let platformColor = NSColor(self).usingColorSpace(.deviceRGB) ?? NSColor.black
+        #else
+        let platformColor = UIColor(self)
+        #endif
+
         var hue: CGFloat = 0
         var saturation: CGFloat = 0
         var brightness: CGFloat = 0
         var alpha: CGFloat = 0
-        nsColor.getHue(&hue, saturation: &saturation, brightness: &brightness, alpha: &alpha)
+        platformColor.getHue(&hue, saturation: &saturation, brightness: &brightness, alpha: &alpha)
         return (hue, saturation, brightness)
     }
     
@@ -62,6 +70,7 @@ extension Color {
     }
 }
 
+#if os(macOS)
 @MainActor
 class AppearanceMonitor: ObservableObject {
     var isDarkMode: Bool
@@ -77,3 +86,4 @@ class AppearanceMonitor: ObservableObject {
         }
     }
 }
+#endif

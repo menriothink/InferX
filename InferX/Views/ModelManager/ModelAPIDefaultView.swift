@@ -8,6 +8,8 @@
 import SwiftUI
 
 struct ModelAPIDefaultView: View {
+    @Environment(\.locale) private var locale
+    @Environment(\.layoutDirection) private var layoutDirection
     @Environment(SettingsModel.self) private var settingsModel
     @Environment(ConversationModel.self) private var conversationModel
     
@@ -50,13 +52,27 @@ struct ModelAPIDefaultView: View {
                 }
                 .buttonStyle(SecondaryButtonStyle())
             }
+            #if os(macOS)
             .frame(width: 200)
+            #else
+            .frame(maxWidth: .infinity)
+            #endif
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
-        .background(Color(NSColor.windowBackgroundColor))
+        .background(backgroundColor)
         .sheet(isPresented: $addAPISheet) {
             ModelAPIAddSheetView()
+                .environment(\.locale, locale)
+                .environment(\.layoutDirection, layoutDirection)
         }
+    }
+
+    private var backgroundColor: Color {
+        #if os(macOS)
+        Color(NSColor.windowBackgroundColor)
+        #else
+        Color(UIColor.systemBackground)
+        #endif
     }
 }
 

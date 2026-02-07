@@ -13,11 +13,9 @@
 		262799A22DA2D699002CB8A4 /* SwiftUIX in Frameworks */ = {isa = PBXBuildFile; productRef = 262799A12DA2D699002CB8A4 /* SwiftUIX */; };
 		268E8A892EA69C5F00D41C59 /* MarkdownUI in Frameworks */ = {isa = PBXBuildFile; productRef = 268E8A882EA69C5F00D41C59 /* MarkdownUI */; };
 		268E8CF72EA69D3300D41C59 /* Defaults in Frameworks */ = {isa = PBXBuildFile; productRef = 268E8CF62EA69D3300D41C59 /* Defaults */; };
-		268E8CF92EA69D3300D41C59 /* DefaultsMacros in Frameworks */ = {isa = PBXBuildFile; productRef = 268E8CF82EA69D3300D41C59 /* DefaultsMacros */; };
 		268E8CFC2EA69D9100D41C59 /* AlertToast in Frameworks */ = {isa = PBXBuildFile; productRef = 268E8CFB2EA69D9100D41C59 /* AlertToast */; };
 		268E8CFF2EA69DC700D41C59 /* Highlightr in Frameworks */ = {isa = PBXBuildFile; productRef = 268E8CFE2EA69DC700D41C59 /* Highlightr */; };
 		268E8D022EA69E1000D41C59 /* AnyCodable in Frameworks */ = {isa = PBXBuildFile; productRef = 268E8D012EA69E1000D41C59 /* AnyCodable */; };
-		268E8D052EA69E9C00D41C59 /* Luminare in Frameworks */ = {isa = PBXBuildFile; productRef = 268E8D042EA69E9C00D41C59 /* Luminare */; };
 		268E8D082EA69F4E00D41C59 /* Alamofire in Frameworks */ = {isa = PBXBuildFile; productRef = 268E8D072EA69F4E00D41C59 /* Alamofire */; };
 		26A32C252E3272D80053B454 /* AsyncAlgorithms in Frameworks */ = {isa = PBXBuildFile; productRef = 26A32C242E3272D80053B454 /* AsyncAlgorithms */; };
 		26ACD1CA2E1EA9C700C5D096 /* Semaphore in Frameworks */ = {isa = PBXBuildFile; productRef = 26ACD1C92E1EA9C700C5D096 /* Semaphore */; };
@@ -107,12 +105,10 @@
 				26ACD26C2E1EAE8600C5D096 /* ArgumentParser in Frameworks */,
 				262799992DA2CCE5002CB8A4 /* Splash in Frameworks */,
 				268E8CF72EA69D3300D41C59 /* Defaults in Frameworks */,
-				268E8CF92EA69D3300D41C59 /* DefaultsMacros in Frameworks */,
 				268E8CFF2EA69DC700D41C59 /* Highlightr in Frameworks */,
 				26FFEC422DF3004A000DFB9E /* SwiftMath in Frameworks */,
 				262799362D9E0B6F002CB8A4 /* SwiftUIIntrospect in Frameworks */,
 				26D48DB12EA6865A00857B41 /* MLXMNIST in Frameworks */,
-				268E8D052EA69E9C00D41C59 /* Luminare in Frameworks */,
 				26D48DAF2EA6865A00857B41 /* MLXLMCommon in Frameworks */,
 				26ACD1CA2E1EA9C700C5D096 /* Semaphore in Frameworks */,
 				268E8CFC2EA69D9100D41C59 /* AlertToast in Frameworks */,
@@ -214,11 +210,9 @@
 				26D48DB22EA6865A00857B41 /* MLXVLM */,
 				268E8A882EA69C5F00D41C59 /* MarkdownUI */,
 				268E8CF62EA69D3300D41C59 /* Defaults */,
-				268E8CF82EA69D3300D41C59 /* DefaultsMacros */,
 				268E8CFB2EA69D9100D41C59 /* AlertToast */,
 				268E8CFE2EA69DC700D41C59 /* Highlightr */,
 				268E8D012EA69E1000D41C59 /* AnyCodable */,
-				268E8D042EA69E9C00D41C59 /* Luminare */,
 				268E8D072EA69F4E00D41C59 /* Alamofire */,
 			);
 			productName = InferX;
@@ -250,6 +244,45 @@
 			knownRegions = (
 				en,
 				Base,
+				ar,
+				ca,
+				cs,
+				da,
+				de,
+				el,
+				"en-AU",
+				"en-GB",
+				"en-IN",
+				es,
+				"es-419",
+				fi,
+				fr,
+				"fr-CA",
+				he,
+				hi,
+				hr,
+				hu,
+				id,
+				it,
+				ja,
+				ko,
+				ms,
+				nb,
+				nl,
+				pl,
+				"pt-BR",
+				"pt-PT",
+				ro,
+				ru,
+				sk,
+				sv,
+				th,
+				tr,
+				uk,
+				vi,
+				"zh-Hans",
+				"zh-Hant",
+				"zh-HK",
 			);
 			mainGroup = 26FE08AF2D79D07100438583;
 			minimizedProjectReferenceProxies = 1;
@@ -268,7 +301,6 @@
 				268E8CFA2EA69D9100D41C59 /* XCRemoteSwiftPackageReference "AlertToast" */,
 				268E8CFD2EA69DC700D41C59 /* XCRemoteSwiftPackageReference "Highlightr" */,
 				268E8D002EA69E1000D41C59 /* XCRemoteSwiftPackageReference "AnyCodable" */,
-				268E8D032EA69E9C00D41C59 /* XCRemoteSwiftPackageReference "Luminare" */,
 				268E8D062EA69F4D00D41C59 /* XCRemoteSwiftPackageReference "Alamofire" */,
 			);
 			preferredProjectObjectVersion = 77;
@@ -684,14 +716,6 @@
 				minimumVersion = 0.6.7;
 			};
 		};
-		268E8D032EA69E9C00D41C59 /* XCRemoteSwiftPackageReference "Luminare" */ = {
-			isa = XCRemoteSwiftPackageReference;
-			repositoryURL = "git@github.com:MrKai77/Luminare.git";
-			requirement = {
-				kind = upToNextMajorVersion;
-				minimumVersion = 0.1.0;
-			};
-		};
 		268E8D062EA69F4D00D41C59 /* XCRemoteSwiftPackageReference "Alamofire" */ = {
 			isa = XCRemoteSwiftPackageReference;
 			repositoryURL = "git@github.com:Alamofire/Alamofire.git";
@@ -781,11 +805,6 @@
 			package = 268E8CF52EA69D3300D41C59 /* XCRemoteSwiftPackageReference "Defaults" */;
 			productName = Defaults;
 		};
-		268E8CF82EA69D3300D41C59 /* DefaultsMacros */ = {
-			isa = XCSwiftPackageProductDependency;
-			package = 268E8CF52EA69D3300D41C59 /* XCRemoteSwiftPackageReference "Defaults" */;
-			productName = DefaultsMacros;
-		};
 		268E8CFB2EA69D9100D41C59 /* AlertToast */ = {
 			isa = XCSwiftPackageProductDependency;
 			package = 268E8CFA2EA69D9100D41C59 /* XCRemoteSwiftPackageReference "AlertToast" */;
@@ -800,11 +819,6 @@
 			isa = XCSwiftPackageProductDependency;
 			package = 268E8D002EA69E1000D41C59 /* XCRemoteSwiftPackageReference "AnyCodable" */;
 			productName = AnyCodable;
-		};
-		268E8D042EA69E9C00D41C59 /* Luminare */ = {
-			isa = XCSwiftPackageProductDependency;
-			package = 268E8D032EA69E9C00D41C59 /* XCRemoteSwiftPackageReference "Luminare" */;
-			productName = Luminare;
 		};
 		268E8D072EA69F4E00D41C59 /* Alamofire */ = {
 			isa = XCSwiftPackageProductDependency;

@@ -24,221 +24,175 @@ struct ModelParameterView: View {
     }
     
     var body: some View {
-        VStack(alignment: .leading) {
-            Text("Model Prompt")
+        Section(header: Text("Model Settings").font(.headline)) {
+            VStack(alignment: .leading, spacing: 10) {
+                Text("Model Prompt")
+                    .font(.subheadline.weight(.medium))
+                
+                TextEditor(text: Binding(
+                    get: { model.systemPrompt },
+                    set: { model.systemPrompt = $0 }
+                ))
+                .font(.system(size: 13))
+                .multilineTextAlignment(.leading)
+                .frame(minHeight: 120)
+                .scrollContentBackground(.hidden)
+                .padding(8)
+                .background(Color(.secondarySystemBackground))
+                .clipShape(RoundedRectangle(cornerRadius: 10, style: .continuous))
+            }
+            .padding(.vertical, 4)
             
-            TextEditor(text: Binding(
-                get: { model.systemPrompt },
-                set: { model.systemPrompt = $0 }
-            ))
-            .font(.system(size: 13))
-            .cornerRadius(4)
-            .multilineTextAlignment(.leading)
-            .frame(minHeight: 50)
-        }
-          
-        Form {
-            Grid(alignment: .leadingFirstTextBaseline, horizontalSpacing: 10, verticalSpacing: 12) {
-                HStack {
-                    HStack {
-                        Text("Temperature")
-                        Spacer()
-                    }
-                    .frame(width: textWidth)
-
-                    Slider(
+            VStack(spacing: 12) {
+                parameterRow(
+                    title: "Temperature",
+                    help: "Sampling temperature."
+                ) {
+                    sliderRow(
                         value: Binding(
                             get: { model.temperature },
                             set: { model.temperature = $0 }
                         ),
-                        in: temperatureRange
+                        in: temperatureRange,
+                        displayText: String(format: "%.2f", model.temperature)
                     )
-                    
-                    Text("\(model.temperature, specifier: "%.2f")")
-                        .frame(width: sliderTextWidth, alignment: .trailing)
                 }
-                .help("Sampling temperature.")
                 
-                HStack {
-                    HStack {
-                        Text("Top P")
-                        Spacer()
-                    }
-                    .frame(width: textWidth)
-                    
-                    Slider(
+                parameterRow(
+                    title: "Top P",
+                    help: "Select from the most probable tokens whose sum sampling rate is P."
+                ) {
+                    sliderRow(
                         value: Binding(
                             get: { model.topP },
                             set: { model.topP = $0 }
                         ),
-                        in: 0.0...1.0
+                        in: 0.0...1.0,
+                        displayText: String(format: "%.2f", model.topP)
                     )
-                    
-                    Text("\(model.topP, specifier: "%.2f")")
-                        .frame(width: sliderTextWidth, alignment: .trailing)
                 }
-                .frame(alignment: .leading)
-                .help("Select from the most probable tokens whose sum sampling rate is P.")
                 
                 if model.enableTopK {
-                    HStack {
-                        HStack {
-                            Text("Top K")
-                            Spacer()
-                        }
-                        .frame(width: textWidth)
-
+                    parameterRow(title: "Top K", help: "Sample from K most probable tokens.") {
                         TextField("", value: Binding(
-                            get: {
-                                model.topK
-                            },
-                            set: {
-                                if $0 > 0 {
-                                    model.topK = $0
-                                } else {
-                                    model.topK = 0
-                                }
-                            }
+                            get: { model.topK },
+                            set: { model.topK = max(0, $0) }
                         ), formatter: NumberFormatter())
-                            .multilineTextAlignment(.trailing)
-                        
-                        Text("").frame(width: sliderTextWidth)
+                        .multilineTextAlignment(.trailing)
+                        #if os(iOS)
+                        .keyboardType(.numberPad)
+                        #endif
                     }
-                    .help("Sample from K most probable tokens.")
                 }
                 
                 if model.enableSeed {
-                    HStack {
-                        HStack {
-                            Text("Seed")
-                            Spacer()
-                        }
-                        .frame(width: textWidth)
-                        
+                    parameterRow(
+                        title: "Seed",
+                        help: "Optional integer to set the seed for random generations, for consistency. Useful for testing or reproducing results."
+                    ) {
                         TextField("", value: Binding(
-                            get: {
-                                model.seed
-                            },
-                            set: {
-                                if $0 > 0 {
-                                    model.seed = $0
-                                } else {
-                                    model.seed = 0
-                                }
-                            }
+                            get: { model.seed },
+                            set: { model.seed = max(0, $0) }
                         ), formatter: NumberFormatter())
                         .multilineTextAlignment(.trailing)
-                        
-                        Text("").frame(width: sliderTextWidth)
+                        #if os(iOS)
+                        .keyboardType(.numberPad)
+                        #endif
                     }
-                    .help("Optional integer to set the seed for random generations, for consistency. Useful for testing or reproducing results.")
                 }
                 
                 if model.enableRepetitionPenalty {
-                    HStack {
-                        HStack {
-                            Text("Repetition Penalty")
-                            Spacer()
-                        }
-                        .frame(width: textWidth)
-                        
-                        Slider(
+                    parameterRow(
+                        title: "Repetition Penalty",
+                        help: "A penalty applied to tokens that have already been generated. 1.0 is no penalty. Greater than 1.0 penalizes, less than 1.0 ‘encourages’."
+                    ) {
+                        sliderRow(
                             value: Binding(
                                 get: { model.repetitionPenalty },
                                 set: { model.repetitionPenalty = $0 }
                             ),
-                            in: 0.1...2.0
+                            in: 0.1...2.0,
+                            displayText: String(format: "%.2f", model.repetitionPenalty)
                         )
-                        
-                        Text("\(model.repetitionPenalty, specifier: "%.2f")")
-                            .frame(width: sliderTextWidth, alignment: .trailing)
                     }
-                    .help("A penalty applied to tokens that have already been generated. 1.0 is no penalty. Greater than 1.0 penalizes, less than 1.0 ‘encourages’.")
                 }
                 
-                HStack {
-                    HStack {
-                        Text("History Messages")
-                        Spacer()
-                    }
-                    .frame(width: textWidth)
-                    
+                parameterRow(
+                    title: "History Messages",
+                    help: "Number of historical messages to carry when sending new messages to the model. Recommended range 0-50."
+                ) {
                     TextField("", value: Binding(
-                        get: {
-                            model.inputMessages
-                        },
-                        set: {
-                            if $0 > 0 {
-                                model.inputMessages = $0
-                            } else {
-                                model.inputMessages = 0
-                            }
-                        }
+                        get: { model.inputMessages },
+                        set: { model.inputMessages = max(0, $0) }
                     ), formatter: NumberFormatter())
-                        .multilineTextAlignment(.trailing)
-                    Spacer()
-                    Text("").frame(width: sliderTextWidth)
+                    .multilineTextAlignment(.trailing)
+                    #if os(iOS)
+                    .keyboardType(.numberPad)
+                    #endif
                 }
-                .help("Number of historical messages to carry when sending new messages to the model. Recommended range 0-50.")
                 
                 if let inputTokenLimit = modelMeta?.inputTokenLimit {
-                    HStack {
-                        HStack {
-                            Text("Input Tokens Limit")
-                            Spacer()
-                        }
-                        .frame(width: textWidth)
-                        
+                    parameterRow(
+                        title: "Input Tokens Limit",
+                        help: "Limit the total number of input tokens for the model (including historical messages and current input). Max: \(inputTokenLimit)."
+                    ) {
                         TextField("", value: Binding(
-                            get: {
-                                model.inputTokens
-                            },
-                            set: {
-                                if $0 > inputTokenLimit {
-                                    model.inputTokens = inputTokenLimit
-                                } else if $0 < 0 {
-                                    model.inputTokens = 0
-                                } else {
-                                    model.inputTokens = $0
-                                }
-                            }
+                            get: { model.inputTokens },
+                            set: { model.inputTokens = min(max(0, $0), inputTokenLimit) }
                         ), formatter: NumberFormatter())
                         .multilineTextAlignment(.trailing)
-                        
-                        Text("").frame(width: sliderTextWidth)
+                        #if os(iOS)
+                        .keyboardType(.numberPad)
+                        #endif
                     }
-                    .help("Limit the total number of input tokens for the model (including historical messages and current input). Max: \(inputTokenLimit).")
                 }
                 
                 if let outputTokenLimit = modelMeta?.outputTokenLimit {
-                    HStack {
-                        HStack {
-                            Text("Generation Tokens")
-                            Spacer()
-                        }
-                        .frame(width: textWidth)
-                           
+                    parameterRow(
+                        title: "Generation Tokens",
+                        help: "Limit the number of tokens generated by the model. Max: \(outputTokenLimit)."
+                    ) {
                         TextField("", value: Binding(
-                            get: {
-                                model.outputTokens
-                            },
-                            set: {
-                                if $0 > outputTokenLimit {
-                                    model.outputTokens = outputTokenLimit
-                                } else if $0 < 0 {
-                                    model.outputTokens = 0
-                                } else {
-                                    model.outputTokens = $0
-                                }
-                            }
+                            get: { model.outputTokens },
+                            set: { model.outputTokens = min(max(0, $0), outputTokenLimit) }
                         ), formatter: NumberFormatter())
-                            .multilineTextAlignment(.trailing)
-                        
-                        Text("").frame(width: sliderTextWidth)
+                        .multilineTextAlignment(.trailing)
+                        #if os(iOS)
+                        .keyboardType(.numberPad)
+                        #endif
                     }
-                    .help("Limit the number of tokens generated by the model. Max: \(outputTokenLimit).")
                 }
             }
+            .padding(.vertical, 2)
+        }
+    }
+
+    @ViewBuilder
+    private func parameterRow<Content: View>(
+        title: LocalizedStringKey,
+        help: String? = nil,
+        @ViewBuilder content: () -> Content
+    ) -> some View {
+        HStack(alignment: .firstTextBaseline, spacing: 12) {
+            Text(title)
+                .frame(maxWidth: .infinity, alignment: .leading)
+            content()
+        }
+        .help(help ?? "")
+    }
+    
+    @ViewBuilder
+    private func sliderRow(
+        value: Binding<Float>,
+        in range: ClosedRange<Float>,
+        displayText: String
+    ) -> some View {
+        HStack(spacing: 10) {
+            Slider(value: value, in: range)
+            Text(displayText)
+                .font(.caption)
+                .foregroundStyle(.secondary)
+                .frame(width: 50, alignment: .trailing)
         }
     }
 }

@@ -145,6 +145,7 @@ struct ModelAPIDescriptor: Identifiable, Sendable, Hashable {
     var cacheDir: URL?
     
     init(from modelAPI: ModelAPI) {
+        self.id = modelAPI.id
         self.name = modelAPI.name
         self.modelProvider = modelAPI.modelProvider
         self.endPoint = modelAPI.endPoint
@@ -219,6 +220,7 @@ enum ModelProvider: String, Codable, Identifiable, CaseIterable {
     case openAI = "OpenAI"
     case huggingFace = "HuggingFace"
     case gemini = "Gemini"
+    case copilot = "Copilot"
     case none = "None"
 
     var id: String { self.rawValue }
@@ -233,6 +235,8 @@ enum ModelProvider: String, Codable, Identifiable, CaseIterable {
             return "https://generativelanguage.googleapis.com/v1beta"
         case .huggingFace:
             return "https://huggingface.co"
+        case .copilot:
+            return "https://api.githubcopilot.com"
         case .none:
             return ""
         }
@@ -254,12 +258,17 @@ var tabs: [SidebarTabView<ModelProvider>] {
         ),
         .init(
             .openAI,
-            Image("huggingface"),
+            Image("openai"),
             imageSize
         ),
         .init(
             .gemini,
             Image("Gemini"),
+            imageSize
+        ),
+        .init(
+            .copilot,
+            Image(systemName: "chevron.left.forwardslash.chevron.right"),
             imageSize
         )
     ]
@@ -291,6 +300,18 @@ extension ModelService {
                 modelAPI: modelAPI,
                 handler: handler
             )
+        },
+        .openAI: { modelAPI, handler in
+            return await OpenAIService.shared.getModels(
+                modelAPI: modelAPI,
+                handler: handler
+            )
+        },
+        .copilot: { modelAPI, handler in
+            return await CopilotService.shared.getModels(
+                modelAPI: modelAPI,
+                handler: handler
+            )
         }
     ]
 
@@ -319,6 +340,20 @@ extension ModelService {
                 for: request,
                 handler: handler
             )
+        },
+        .openAI: { modelAPI, request, handler in
+            return await OpenAIService.shared.chatModel(
+                modelAPI: modelAPI,
+                for: request,
+                handler: handler
+            )
+        },
+        .copilot: { modelAPI, request, handler in
+            return await CopilotService.shared.chatModel(
+                modelAPI: modelAPI,
+                for: request,
+                handler: handler
+            )
         }
     ]
 
@@ -333,6 +368,11 @@ extension ModelService {
                 for: request,
                 handler: handler
             )
+        },
+        // Copilot uses inline base64 images, no pre-upload needed
+        .copilot: { _, _, handler in
+            // Return success with empty URI - images will be base64 encoded inline
+            await handler(.finished(nil))
         }
     ]
 }

@@ -17,7 +17,7 @@ struct ModernButtonStyle: ButtonStyle {
 
 struct UltraButtonView: View {
     let fontSize: CGFloat
-    let text: String
+    let text: LocalizedStringKey
     let action: () -> Void
 
     var body: some View {

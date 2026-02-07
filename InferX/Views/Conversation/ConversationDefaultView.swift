@@ -50,10 +50,22 @@ struct ConversationDefaultView: View {
                 }
                 .buttonStyle(SecondaryButtonStyle())
             }
+            #if os(macOS)
             .frame(width: 200)
+            #else
+            .frame(maxWidth: .infinity)
+            #endif
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
-        .background(Color(NSColor.windowBackgroundColor))
+        .background(backgroundColor)
+    }
+
+    private var backgroundColor: Color {
+        #if os(macOS)
+        Color(NSColor.windowBackgroundColor)
+        #else
+        Color(UIColor.systemBackground)
+        #endif
     }
 }
 

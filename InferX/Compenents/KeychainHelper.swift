@@ -9,7 +9,8 @@ import Security
 import SwiftUIX
 
 struct KeychainHelper {
-    static func save(key: String, value: String) {
+    @discardableResult
+    static func save(key: String, value: String) -> Bool {
         let data = Data(value.utf8)
 
         let query: [String: Any] = [
@@ -19,8 +20,15 @@ struct KeychainHelper {
             kSecAttrAccessible as String : kSecAttrAccessibleWhenUnlocked
         ]
 
-        SecItemDelete(query as CFDictionary)
-        SecItemAdd(query as CFDictionary, nil)
+        let deleteStatus = SecItemDelete(query as CFDictionary)
+        let addStatus = SecItemAdd(query as CFDictionary, nil)
+        
+        if addStatus != errSecSuccess {
+            print("[KeychainHelper] Failed to save key '\(key)', status: \(addStatus)")
+            return false
+        }
+        print("[KeychainHelper] Saved key '\(key)' successfully")
+        return true
     }
 
     static func load(key: String) -> String? {
@@ -32,13 +40,16 @@ struct KeychainHelper {
         ]
 
         var result: AnyObject?
-        SecItemCopyMatching(query as CFDictionary, &result)
+        let status = SecItemCopyMatching(query as CFDictionary, &result)
 
-        guard let data = result as? Data,
+        guard status == errSecSuccess,
+              let data = result as? Data,
               let value = String(data: data, encoding: .utf8) else {
+            print("[KeychainHelper] Failed to load key '\(key)', status: \(status)")
             return nil
         }
 
+        print("[KeychainHelper] Loaded key '\(key)' successfully")
         return value
     }
     
