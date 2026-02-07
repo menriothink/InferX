@@ -396,6 +396,10 @@ struct CopilotAuthStatusView: View {
                     }
                     .buttonStyle(.borderedProminent)
                     .controlSize(.small)
+                    // Ensure the sign-in button remains readable on iOS even if a parent view
+                    // changes foreground/tint styling.
+                    .tint(Color.accentColor)
+                    .foregroundStyle(.white)
                 }
             }
             .padding()

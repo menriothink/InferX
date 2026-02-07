@@ -176,7 +176,13 @@ struct ModelAPIDetailView: View {
             }
         }
         .foregroundColor(.primary)
+        #if os(macOS)
         .accentColor(.primary)
+        #else
+        // iOS: Don't force tint to `.primary` (black), otherwise prominent buttons
+        // and other controls can become unreadable.
+        .tint(Color.accentColor)
+        #endif
         .formStyle(.grouped)
         .scrollContentBackground(.hidden)
         .background(Color.clear)
@@ -282,16 +288,18 @@ struct ModelAPIDetailView: View {
             Spacer()
 
             // Right-side controls (keep comfortable spacing)
-            HStack(spacing: 12) {
+            HStack(spacing: 16) {
                 // Status indicator
                 Circle()
                     .fill(modelAPI.isAvailable ? Color.green : Color.red)
                     .frame(width: 7, height: 7)
+                    .padding(.trailing, 2)
 
                 // Refresh
                 Button(action: updateModelStatus) {
                     Image(systemName: "arrow.trianglehead.clockwise.rotate.90")
                         .font(.system(size: 16))
+                        .frame(width: 28, height: 28)
                 }
                 .buttonStyle(.plain)
                 .foregroundStyle(.secondary)
@@ -300,6 +308,7 @@ struct ModelAPIDetailView: View {
                 Button(action: { addingModel = true }) {
                     Image(systemName: "plus.circle")
                         .font(.system(size: 16))
+                        .frame(width: 28, height: 28)
                 }
                 .buttonStyle(.plain)
                 .foregroundStyle(.secondary)
@@ -310,6 +319,7 @@ struct ModelAPIDetailView: View {
                     } label: {
                         Image(systemName: "binoculars.circle")
                             .font(.system(size: 16))
+                            .frame(width: 28, height: 28)
                     }
                     .foregroundStyle(.secondary)
 
@@ -318,6 +328,7 @@ struct ModelAPIDetailView: View {
                     } label: {
                         Image(systemName: "arrow.down.circle")
                             .font(.system(size: 16))
+                            .frame(width: 28, height: 28)
                     }
                     .foregroundStyle(.secondary)
                 }

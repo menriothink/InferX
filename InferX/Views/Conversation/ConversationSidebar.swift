@@ -71,10 +71,13 @@ struct ConversationSidebar: View {
     }
     
     private var topSection: some View {
-        searchBarView
-            .frame(height: searchBarHeight)
-            .padding(.vertical, topSectionVerticalPadding)
-            .padding(.leading, 5)
+        VStack(alignment: .leading, spacing: 6) {
+            searchBarView
+                .frame(height: searchBarHeight)
+            searchScopeHintView
+        }
+        .padding(.vertical, topSectionVerticalPadding)
+        .padding(.leading, 5)
     }
     
     private var conversationListView: some View {
@@ -175,7 +178,7 @@ struct ConversationSidebar: View {
     }
     
     private var searchBarView: some View {
-        HStack(alignment: .bottom) {
+        HStack(alignment: .center, spacing: 8) {
             textFieldView
             toggleView
         }
@@ -183,10 +186,32 @@ struct ConversationSidebar: View {
     
     private var textFieldView: some View {
         searchTextField(for: conversationModel)
+            .frame(maxWidth: .infinity)
     }
     
     private var toggleView: some View {
         searchToggle(for: conversationModel)
+            .fixedSize()
+    }
+
+    private var searchScopeHintView: some View {
+        HStack(spacing: 6) {
+            Image(systemName: conversationModel.includeMessageContent ? "globe" : "list.bullet")
+            Text(
+                conversationModel.includeMessageContent
+                    ? "Search all sessions (including messages)"
+                    : "Search session list only"
+            )
+        }
+        .font(.caption2)
+        .foregroundStyle(.secondary)
+        .padding(.leading, 6)
+        .lineLimit(2)
+        .accessibilityLabel(
+            conversationModel.includeMessageContent
+                ? Text("Search all sessions (including messages)")
+                : Text("Search session list only")
+        )
     }
     
     private func searchTextField(for model: ConversationModel) -> some View {
@@ -220,14 +245,19 @@ struct ConversationSidebar: View {
         @Bindable var conversationModel = model
         
         return Toggle(isOn: $conversationModel.includeMessageContent) {
-            EmptyView()
+            Text("Global")
+                .font(.caption2)
         }
 #if os(macOS)
         .toggleStyle(.checkbox)
+        .controlSize(.small)
 #else
         .toggleStyle(.switch)
 #endif
         .help("Include message content when searching")
+        .onChange(of: conversationModel.includeMessageContent) { _ in
+            filteredConversations(conversationModel.searchText)
+        }
     }
     
     private func filteredConversations(_ keyword: String) {

@@ -3,6 +3,7 @@ import SwiftUI
 #if os(macOS)
 import AppKit
 
+@MainActor
 struct UltramanTextEditor: NSViewRepresentable {
     @Environment(\.locale) private var locale
 
@@ -12,11 +13,78 @@ struct UltramanTextEditor: NSViewRepresentable {
     var isEnabled: Bool = true
     
     private var localizedPlaceholder: String {
-        String(
-            localized: String.LocalizationValue(placeholder),
-            bundle: .main,
-            locale: locale
-        )
+        // IMPORTANT (macOS):
+        // `String(localized:..., locale:)` does not reliably follow SwiftUI's
+        // `.environment(\.locale, ...)` override for choosing the language in all cases.
+        // To make the placeholder strictly follow the view hierarchy locale, we resolve the
+        // string from the corresponding `.lproj` bundle ourselves.
+        Self.localizedString(placeholder, locale: locale)
+    }
+    
+    private static func localizedString(_ key: String, locale: Locale) -> String {
+        let sentinel = "\u{0}__MISSING__\u{0}"
+        
+        func value(in localization: String) -> String? {
+            guard let path = Bundle.main.path(forResource: localization, ofType: "lproj"),
+                  let bundle = Bundle(path: path)
+            else { return nil }
+            
+            let result = bundle.localizedString(forKey: key, value: sentinel, table: nil)
+            return result == sentinel ? nil : result
+        }
+        
+        var candidates: [String] = []
+        func addCandidate(_ id: String?) {
+            guard let id, !id.isEmpty else { return }
+            let normalized = id.replacingOccurrences(of: "_", with: "-")
+            if !candidates.contains(normalized) { candidates.append(normalized) }
+        }
+        
+        let normalizedIdentifier = locale.identifier.replacingOccurrences(of: "_", with: "-")
+        
+        // Try the full locale identifier first (e.g. "zh-Hans", "en-GB").
+        addCandidate(normalizedIdentifier)
+        
+        // Then try language-script / language-region / language fallbacks.
+        let languageCode = locale.language.languageCode?.identifier
+        let scriptCode = locale.language.script?.identifier
+        let regionCode = locale.region?.identifier
+        
+        if let languageCode {
+            // Special handling for Chinese:
+            // Many system locales come through as "zh-CN"/"zh-TW" without an explicit script.
+            // But our app localizations use script-based IDs like "zh-Hans"/"zh-Hant" (and "zh-HK").
+            if languageCode == "zh",
+               !normalizedIdentifier.localizedCaseInsensitiveContains("Hans"),
+               !normalizedIdentifier.localizedCaseInsensitiveContains("Hant"),
+               scriptCode == nil {
+                let region = regionCode?.uppercased()
+                switch region {
+                case "HK", "MO":
+                    // Prefer zh-HK if present, then fall back to Traditional Chinese.
+                    addCandidate("zh-HK")
+                    addCandidate("zh-Hant")
+                case "TW":
+                    addCandidate("zh-Hant")
+                default:
+                    // CN/SG/MY/… default to Simplified Chinese.
+                    addCandidate("zh-Hans")
+                }
+            }
+            
+            addCandidate(scriptCode.map { "\(languageCode)-\($0)" })
+            addCandidate(regionCode.map { "\(languageCode)-\($0)" })
+            addCandidate(languageCode)
+        }
+        
+        for candidate in candidates {
+            if let localized = value(in: candidate) {
+                return localized
+            }
+        }
+        
+        // If we can't find a matching `.lproj`, fall back to the key itself (English source).
+        return key
     }
 
     func makeNSView(context: Context) -> NSScrollView {
@@ -52,6 +120,7 @@ struct UltramanTextEditor: NSViewRepresentable {
         Coordinator(self)
     }
 
+    @MainActor
     class Coordinator: NSObject, NSTextViewDelegate {
         var parent: UltramanTextEditor
         var placeholderView: NSTextView?
