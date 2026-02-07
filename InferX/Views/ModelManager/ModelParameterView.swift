@@ -38,7 +38,15 @@ struct ModelParameterView: View {
                 .frame(minHeight: 120)
                 .scrollContentBackground(.hidden)
                 .padding(8)
-                .background(Color(.secondarySystemBackground))
+                .background {
+                    #if os(iOS)
+                    Color(uiColor: .secondarySystemBackground)
+                    #elseif os(macOS)
+                    Color(nsColor: .controlBackgroundColor)
+                    #else
+                    Color.secondary.opacity(0.12)
+                    #endif
+                }
                 .clipShape(RoundedRectangle(cornerRadius: 10, style: .continuous))
             }
             .padding(.vertical, 4)
