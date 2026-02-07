@@ -89,7 +89,8 @@ struct MenuView: View {
             statics.evalCount.map { ("Tokens", "\($0)") },
             statics.tokensPerSecond.map { ("Speed", String(format: "%.1f t/s", $0)) },
         ].compactMap { $0 }
-        
+
+        // Original iOS layout
         HStack(spacing: 0) {
             ForEach(Array(items.enumerated()), id: \.offset) { index, item in
                 if index > 0 {
@@ -119,51 +120,64 @@ struct MenuView: View {
     private var macOSMenuView: some View {
         VStack(alignment: messageData.role == .user ? .trailing : .leading) {
             if let statics = messageData.chatStatics, messageData.role == .assistant {
-                HStack(spacing: 10) {
+                VStack(alignment: .leading, spacing: 6) {
+                    // First line: model name (can be very long)
                     if let fullName = messageData.fullName, !fullName.isEmpty {
-                        VStack(alignment: .leading) {
-                            Text("model")
-                            Text(fullName)
-                                .lineLimit(1)
-                                .truncationMode(.middle)
-                                .help(fullName)
-                                .fixedSize(horizontal: true, vertical: false)
-                        }
+                        Text(fullName)
+                            .lineLimit(1)
+                            .truncationMode(.middle)
+                            .help(fullName)
+                            .frame(maxWidth: .infinity, alignment: .leading)
                     }
                     
-                    if let promptEvalCount = statics.promptEvalCount {
-                        VStack(alignment: .leading) {
-                            Text("prompts")
-                            Text("\(promptEvalCount)")
+                    // Second line: token / speed stats
+                    HStack(spacing: 12) {
+                        if let promptEvalCount = statics.promptEvalCount {
+                            VStack(alignment: .leading, spacing: 2) {
+                                Text("prompts")
+                                    .lineLimit(1)
+                                Text("\(promptEvalCount)")
+                                    .lineLimit(1)
+                            }
                         }
-                    }
-                    
-                    if let promptEvalDuration = statics.promptEvalDuration {
-                        VStack(alignment: .leading) {
-                            Text("prompts duration")
-                            Text("\(promptEvalDuration)s")
+                        
+                        if let promptEvalDuration = statics.promptEvalDuration {
+                            VStack(alignment: .leading, spacing: 2) {
+                                Text("prompts duration")
+                                    .lineLimit(1)
+                                Text("\(promptEvalDuration)s")
+                                    .lineLimit(1)
+                            }
                         }
-                    }
-                    
-                    if let evalCount = statics.evalCount {
-                        VStack(alignment: .leading) {
-                            Text("tokens")
-                            Text("\(evalCount)")
+                        
+                        if let evalCount = statics.evalCount {
+                            VStack(alignment: .leading, spacing: 2) {
+                                Text("tokens")
+                                    .lineLimit(1)
+                                Text("\(evalCount)")
+                                    .lineLimit(1)
+                            }
                         }
-                    }
-                    
-                    if let evalDuration = statics.evalDuration {
-                        VStack(alignment: .leading) {
-                            Text("tokens duration")
-                            Text("\(evalDuration)s")
+                        
+                        if let evalDuration = statics.evalDuration {
+                            VStack(alignment: .leading, spacing: 2) {
+                                Text("tokens duration")
+                                    .lineLimit(1)
+                                Text("\(evalDuration)s")
+                                    .lineLimit(1)
+                            }
                         }
-                    }
-                    
-                    if let tokensPerSecond = statics.tokensPerSecond {
-                        VStack(alignment: .leading) {
-                            Text("tokens per second")
-                            Text("\(tokensPerSecond)")
+                        
+                        if let tokensPerSecond = statics.tokensPerSecond {
+                            VStack(alignment: .leading, spacing: 2) {
+                                Text("tokens per second")
+                                    .lineLimit(1)
+                                Text("\(tokensPerSecond)")
+                                    .lineLimit(1)
+                            }
                         }
+                        
+                        Spacer(minLength: 0)
                     }
                 }
                 .font(.caption)
@@ -188,7 +202,6 @@ struct MenuView: View {
                 .font(.caption)
                 .padding(.top, 2)
         }
-        .padding(.leading, 25)
         .background(.clear)
     }
     
