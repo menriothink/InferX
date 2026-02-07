@@ -18,7 +18,7 @@
 
 ## ✨ 主要特性
 
-- 🤖 **多模型支持**: Ollama、Gemini、HuggingFace、MLX
+- 🤖 **多模型支持**: Ollama、OpenAI 兼容接口、Gemini、HuggingFace、GitHub Copilot（以及本地 MLX 模型）
 - 💬 **流式对话**: 实时响应，流畅体验
 - 📝 **Markdown 渲染**: 完整支持代码高亮和数学公式
 - 📊 **图表可视化**: Mermaid 图表渲染
@@ -26,6 +26,60 @@
 - 🎭 **主题切换**: 亮色/暗色模式
 - 🔒 **安全存储**: Keychain 密钥管理
 - 💾 **本地持久化**: SwiftData 数据管理
+
+## 🖼️ macOS 截图
+
+<div align="center">
+<img src="docs/screenshots/chat-code.png" width="780" alt="对话界面：Markdown/代码高亮/统计信息" />
+<br/>
+<sub>流式对话 + Markdown/代码高亮 + 单条消息统计信息</sub>
+</div>
+
+<br/>
+
+<div align="center">
+<img src="docs/screenshots/model-api-settings.png" width="780" alt="模型 API 设置与模型列表" />
+<br/>
+<sub>模型 API 管理：配置提供方/地址/密钥，并管理本地模型</sub>
+</div>
+
+<br/>
+
+<details>
+<summary>更多截图</summary>
+<br/>
+
+<div align="center">
+<img src="docs/screenshots/community-models.png" width="780" alt="社区模型列表" />
+<br/>
+<sub>浏览社区模型并下载到本地使用</sub>
+</div>
+
+<br/>
+
+<div align="center">
+<img src="docs/screenshots/local-models.png" width="780" alt="本地模型列表" />
+<br/>
+<sub>本地模型库：文件/大小/状态与快捷操作</sub>
+</div>
+
+<br/>
+
+<div align="center">
+<img src="docs/screenshots/app-settings.png" width="780" alt="应用设置" />
+<br/>
+<sub>应用设置：字体/代理/缓存等</sub>
+</div>
+
+<br/>
+
+<div align="center">
+<img src="docs/screenshots/math-markdown.png" width="780" alt="数学公式与 Markdown 渲染" />
+<br/>
+<sub>富文本渲染：Markdown、数学公式、长内容</sub>
+</div>
+
+</details>
 
 ## 🚀 快速开始
 

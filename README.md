@@ -16,6 +16,7 @@ A powerful macOS AI chat application supporting multiple AI model providers with
 
 ## 📖 Table of Contents
 
+- [Screenshots](#-screenshots)
 - [Features](#-features)
 - [Supported Model Providers](#-supported-model-providers)
 - [System Requirements](#-system-requirements)
@@ -31,11 +32,65 @@ A powerful macOS AI chat application supporting multiple AI model providers with
 
 ---
 
+## 🖼️ Screenshots
+
+<div align="center">
+<img src="docs/screenshots/chat-code.png" width="780" alt="Chat with Markdown, code highlighting and usage stats" />
+<br/>
+<sub>Chat UI with streaming responses, Markdown/code highlighting, and per-message stats.</sub>
+</div>
+
+<br/>
+
+<div align="center">
+<img src="docs/screenshots/model-api-settings.png" width="780" alt="Model API settings and model list" />
+<br/>
+<sub>Model API manager: configure providers/endpoints/keys and manage local models.</sub>
+</div>
+
+<br/>
+
+<details>
+<summary>More screenshots</summary>
+<br/>
+
+<div align="center">
+<img src="docs/screenshots/community-models.png" width="780" alt="Community model list" />
+<br/>
+<sub>Browse community models and download/manage them locally.</sub>
+</div>
+
+<br/>
+
+<div align="center">
+<img src="docs/screenshots/local-models.png" width="780" alt="Local model list" />
+<br/>
+<sub>Local model library: files, sizes, status, and quick actions.</sub>
+</div>
+
+<br/>
+
+<div align="center">
+<img src="docs/screenshots/app-settings.png" width="780" alt="App settings" />
+<br/>
+<sub>App settings: typography, proxy settings, cache, and more.</sub>
+</div>
+
+<br/>
+
+<div align="center">
+<img src="docs/screenshots/math-markdown.png" width="780" alt="Math and Markdown rendering" />
+<br/>
+<sub>Rich content rendering: Markdown, math, and long-form content.</sub>
+</div>
+
+</details>
+
 ## ✨ Features
 
 ### Core Features
 
-- 🤖 **Multi-Model Support**: Support for Ollama, Gemini, HuggingFace, and MLX model providers
+- 🤖 **Multi-Model Support**: Connect to Ollama, OpenAI-compatible APIs, Google Gemini, HuggingFace, and GitHub Copilot
 - 💬 **Modern Chat Interface**: Smooth chat experience with real-time streaming responses
 - 📎 **Multimedia Attachments**: Support for images, documents, and various file types
 - 📝 **Markdown Rendering**: Full Markdown support including code highlighting and math formulas
@@ -65,23 +120,34 @@ A powerful macOS AI chat application supporting multiple AI model providers with
 - Support for multiple open-source models (Llama, Mistral, Qwen, etc.)
 - Fully offline operation
 
-### 2. Google Gemini
+### 2. OpenAI-compatible APIs
+
+- OpenAI-style Chat Completions API
+- Works with OpenAI and compatible gateways/self-hosted endpoints
+- API key configuration
+
+### 3. Google Gemini
 
 - Google's latest multimodal AI model
 - Support for text and image inputs
 - API key configuration
 
-### 3. HuggingFace
+### 4. HuggingFace
 
 - Access to massive models on HuggingFace Hub
 - Local caching and model downloading support
 - MLX optimization support
 
-### 4. MLX Community
+### 5. GitHub Copilot
 
-- Apple Silicon optimized models
-- High-performance local inference
-- Apple Neural Engine acceleration support
+- Sign in with GitHub and use Copilot models in InferX
+- Ideal for developer workflows and coding chats
+
+### 6. Local MLX models (via HuggingFace / MLX Community)
+
+- Apple Silicon optimized local inference
+- Manage/download MLX models from community lists
+- High-performance local execution on Apple devices
 
 ---
 
