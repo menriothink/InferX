@@ -12,10 +12,12 @@ import AVKit
 import AppKit
 
 struct MessageAttachmentView: View {
+    @Environment(\.locale) private var locale
+    @Environment(\.layoutDirection) private var layoutDirection
     var attachmentData: AttachmentData
 
     @State private var showingAlert = false
-    @State private var alertMessage = ""
+    @State private var alertMessage: LocalizedStringKey = ""
     @State private var showingImageViewer = false
     @State private var showingVideoPlayer = false
     @State private var fileURL: URL?
@@ -28,7 +30,7 @@ struct MessageAttachmentView: View {
     }
 
     private var fileName: String {
-        resolvedURL?.lastPathComponent ?? "附件"
+        resolvedURL?.lastPathComponent ?? "Attachment"
     }
 
     private var fileExtension: String {
@@ -72,15 +74,17 @@ struct MessageAttachmentView: View {
                     .shadow(color: isHovered ? .black.opacity(0.3) : .clear, radius: 8)
             }
             .buttonStyle(.plain)
-            .help(isVideoFile ? "点击播放视频" : (isImageFile ? "点击查看大图" : "点击打开文件"))
+            .help(isVideoFile ? "Tap to play video" : (isImageFile ? "Tap to view image" : "Tap to open file"))
             .onHover { hovering in
                 withAnimation(.easeInOut(duration: 0.2)) {
                     isHovered = hovering
                 }
             }
             .contextMenu {
-                Button("拷贝文件路径") {
+                Button {
                     copyFilePath()
+                } label: {
+                    Text("Copy File Path")
                 }
             }
 
@@ -99,15 +103,19 @@ struct MessageAttachmentView: View {
         .sheet(isPresented: $showingImageViewer) {
             if let data = imageData {
                 MacImageViewer(imageData: data, fileName: fileName)
+                    .environment(\.locale, locale)
+                    .environment(\.layoutDirection, layoutDirection)
             }
         }
         .sheet(isPresented: $showingVideoPlayer) {
             if let fileURL {
                 MacVideoPlayer(videoURL: fileURL)
+                    .environment(\.locale, locale)
+                    .environment(\.layoutDirection, layoutDirection)
             }
         }
         .alert(isPresented: $showingAlert) {
-            Alert(title: Text("提示"), message: Text(alertMessage), dismissButton: .default(Text("确定")))
+            Alert(title: Text("Notice"), message: Text(alertMessage), dismissButton: .default(Text("OK")))
         }
     }
 
@@ -116,7 +124,7 @@ struct MessageAttachmentView: View {
 
         if isImageFile {
             guard let securedURL = FileManager.default.securityAccessFile(url: url) else {
-                alertMessage = "无法开始对 URL 的安全访问。"
+                alertMessage = "Unable to start security-scoped access to the URL."
                 showingAlert = true
                 return
             }
@@ -127,7 +135,7 @@ struct MessageAttachmentView: View {
                 imageData = data
                 showingImageViewer = true
             } else {
-                alertMessage = "无法读取图片文件"
+                alertMessage = "Failed to read image file."
                 showingAlert = true
             }
         } else if isVideoFile {
@@ -139,7 +147,7 @@ struct MessageAttachmentView: View {
 
     private func openFile(_ url: URL) {
         guard let fileUrl = FileManager.default.securityAccessFile(url: url) else {
-            alertMessage = "无法开始对 URL 的安全访问。"
+            alertMessage = "Unable to start security-scoped access to the URL."
             showingAlert = true
             return
         }
@@ -183,7 +191,7 @@ struct MacImageViewer: View {
                 Text(fileName)
                     .font(.headline)
                 Spacer()
-                Button("完成") { dismiss() }
+                Button("Done") { dismiss() }
                     .keyboardShortcut(.escape, modifiers: [])
             }
             .padding()
@@ -204,7 +212,7 @@ struct MacImageViewer: View {
                         }
                     }
             } else {
-                Text("无法加载图片")
+                Text("Unable to load image")
                     .foregroundColor(.secondary)
                     .frame(maxWidth: .infinity, maxHeight: .infinity)
             }
@@ -221,7 +229,7 @@ struct MacImageViewer: View {
                         }
                     }
             } else {
-                Text("无法加载图片")
+                Text("Unable to load image")
                     .foregroundColor(.secondary)
                     .frame(maxWidth: .infinity, maxHeight: .infinity)
             }
@@ -244,7 +252,7 @@ struct MacVideoPlayer: View {
                 Text(videoURL.lastPathComponent)
                     .font(.headline)
                 Spacer()
-                Button("完成") {
+                Button("Done") {
                     dismiss()
                 }
                 .keyboardShortcut(.escape, modifiers: [])
@@ -258,7 +266,7 @@ struct MacVideoPlayer: View {
                         player.pause()
                     }
             } else {
-                Text("正在加载视频...")
+                Text("Loading video...")
                     .frame(minWidth: 600, minHeight: 400)
                     .onAppear {
                         guard let securedURL = FileManager.default.securityAccessFile(url: videoURL) else {
@@ -309,7 +317,7 @@ struct MessageAttachmentView: View {
     private var resolvedFileName: String {
         var bookmark = attachmentData.bookmark
         let url = FileManager.default.getResolvedURL(from: &bookmark)
-        return url?.lastPathComponent ?? "附件"
+        return url?.lastPathComponent ?? "Attachment"
     }
 }
 

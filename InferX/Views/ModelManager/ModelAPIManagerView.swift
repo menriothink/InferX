@@ -13,6 +13,8 @@ import AppKit
 
 struct ModelAPIManagerView: View {
     @Environment(\.colorScheme) var colorScheme
+    @Environment(\.locale) private var locale
+    @Environment(\.layoutDirection) private var layoutDirection
     @Environment(ModelManagerModel.self) var managerModel
     @Environment(SettingsModel.self) private var settingsModel
     @Environment(ConversationModel.self) private var conversationModel
@@ -123,12 +125,18 @@ struct ModelAPIManagerView: View {
             .sheet(isPresented: $showingSettings) {
                 SettingsView()
                     .environment(settingsModel)
+                    .environment(\.locale, locale)
+                    .environment(\.layoutDirection, layoutDirection)
             }
             .sheet(isPresented: $showAddModelSheet) {
                 ModelAddSheetView()
+                    .environment(\.locale, locale)
+                    .environment(\.layoutDirection, layoutDirection)
             }
             .sheet(isPresented: $showAddModelAPISheet) {
                 ModelAPIAddSheetView()
+                    .environment(\.locale, locale)
+                    .environment(\.layoutDirection, layoutDirection)
             }
             #else
             ZStack(alignment: .top) {

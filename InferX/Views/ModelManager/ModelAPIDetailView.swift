@@ -10,6 +10,8 @@ import SwiftData
 import Defaults
 
 struct ModelAPIDetailView: View {
+    @Environment(\.locale) private var locale
+    @Environment(\.layoutDirection) private var layoutDirection
     @Environment(ModelManagerModel.self) var modelManager
 
     @Bindable var modelAPI: ModelAPI
@@ -184,6 +186,8 @@ struct ModelAPIDetailView: View {
         }
         .sheet(isPresented: $addingModel) {
             ModelAddSheetView(inputApiName: modelAPI.name)
+                .environment(\.locale, locale)
+                .environment(\.layoutDirection, layoutDirection)
         }
 
     }

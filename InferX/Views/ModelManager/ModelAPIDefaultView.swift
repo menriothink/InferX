@@ -8,6 +8,8 @@
 import SwiftUI
 
 struct ModelAPIDefaultView: View {
+    @Environment(\.locale) private var locale
+    @Environment(\.layoutDirection) private var layoutDirection
     @Environment(SettingsModel.self) private var settingsModel
     @Environment(ConversationModel.self) private var conversationModel
     
@@ -60,6 +62,8 @@ struct ModelAPIDefaultView: View {
         .background(backgroundColor)
         .sheet(isPresented: $addAPISheet) {
             ModelAPIAddSheetView()
+                .environment(\.locale, locale)
+                .environment(\.layoutDirection, layoutDirection)
         }
     }
 

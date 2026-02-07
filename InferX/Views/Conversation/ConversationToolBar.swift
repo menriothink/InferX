@@ -2,6 +2,8 @@ import SwiftUI
 
 // MARK: - Conversation Toolbar View
 struct ConversationToolBar: View {
+    @Environment(\.locale) private var locale
+    @Environment(\.layoutDirection) private var layoutDirection
     @Environment(SettingsModel.self) private var settingsModel
     @Environment(ConversationDetailModel.self) private var detailModel
     @Environment(ConversationModel.self) private var conversationModel
@@ -71,6 +73,8 @@ struct ConversationToolBar: View {
         }
         .sheet(isPresented: $addingModel) {
             ModelAddSheetView()
+                .environment(\.locale, locale)
+                .environment(\.layoutDirection, layoutDirection)
         }
     }
     

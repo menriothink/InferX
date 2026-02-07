@@ -34,10 +34,11 @@ struct SettingsView: View {
     @Default(.gpuCacheLimitEnable) var gpuCacheLimitEnable
     @Default(.appleIntelligenceEffect) var appleIntelligenceEffect
 
-    @State private var tempDirectorySize: String = "Calculating..."
+    @State private var tempDirectorySize: String? = nil
+    @State private var tempDirectoryStatus: LocalizedStringKey = "Calculating..."
     @State private var isClearing: Bool = false
     @State private var showAlert = false
-    @State private var alertMessage = ""
+    @State private var alertMessage: LocalizedStringKey = ""
     
     private let imageSize: CGFloat = 25
     private let minFontSize: CGFloat = 10
@@ -81,7 +82,11 @@ struct SettingsView: View {
             Section("Appearance") {
                 Picker("Language", selection: $language) {
                     ForEach(Language.allCases) { lang in
-                        Text(lang.displayName).tag(lang)
+                        if lang == .system {
+                            Text("System").tag(lang)
+                        } else {
+                            Text(verbatim: lang.displayName).tag(lang)
+                        }
                     }
                 }
 
@@ -221,8 +226,14 @@ struct SettingsView: View {
                 HStack {
                     Text("Temporary Files")
                     Spacer()
-                    Text(tempDirectorySize)
-                        .foregroundStyle(.secondary)
+                    Group {
+                        if let tempDirectorySize {
+                            Text(tempDirectorySize)
+                        } else {
+                            Text(tempDirectoryStatus)
+                        }
+                    }
+                    .foregroundStyle(.secondary)
                     Button(action: clearTempDirectory) {
                         if isClearing {
                             ProgressView().controlSize(.small)
@@ -254,8 +265,11 @@ struct SettingsView: View {
                     
                     Picker("Language", selection: $language) {
                         ForEach(Language.allCases) { language in
-                            Text(language.displayName)
-                                .tag(language)
+                            if language == .system {
+                                Text("System").tag(language)
+                            } else {
+                                Text(verbatim: language.displayName).tag(language)
+                            }
                         }
                     }
                 }
@@ -456,8 +470,14 @@ struct SettingsView: View {
                     HStack {
                         Text("Temporary File Cache")
                         Spacer()
-                        Text(tempDirectorySize)
-                            .foregroundColor(.secondary)
+                        Group {
+                            if let tempDirectorySize {
+                                Text(tempDirectorySize)
+                            } else {
+                                Text(tempDirectoryStatus)
+                            }
+                        }
+                        .foregroundColor(.secondary)
                         Button(action: clearTempDirectory) {
                             if isClearing {
                                 HStack(spacing: 8) {
@@ -526,13 +546,17 @@ struct SettingsView: View {
     }
     
     private func calculateTempDirectorySize() {
+        // Reset to a localized “calculating” status while we compute.
+        self.tempDirectorySize = nil
+        self.tempDirectoryStatus = "Calculating..."
         Task(priority: .userInitiated) {
             let fileManager = FileManager.default
             let tempDirectoryURL = URL(fileURLWithPath: NSTemporaryDirectory(), isDirectory: true)
             
             guard let enumerator = fileManager.enumerator(at: tempDirectoryURL, includingPropertiesForKeys: [.fileSizeKey], options: []) else {
                 await MainActor.run {
-                    self.tempDirectorySize = "Error"
+                    self.tempDirectorySize = nil
+                    self.tempDirectoryStatus = "Error"
                 }
                 return
             }

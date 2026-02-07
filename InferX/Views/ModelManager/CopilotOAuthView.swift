@@ -352,6 +352,8 @@ struct CopilotOAuthView: View {
 // MARK: - Copilot Auth Status View
 
 struct CopilotAuthStatusView: View {
+    @Environment(\.locale) private var locale
+    @Environment(\.layoutDirection) private var layoutDirection
     /// The API ID for which we are showing auth status
     let apiId: UUID
     
@@ -409,6 +411,8 @@ struct CopilotAuthStatusView: View {
             CopilotOAuthView(apiId: apiId) {
                 checkAuthStatus()
             }
+            .environment(\.locale, locale)
+            .environment(\.layoutDirection, layoutDirection)
         }
         .alert("Sign Out", isPresented: $showLogoutAlert) {
             Button("Cancel", role: .cancel) { }

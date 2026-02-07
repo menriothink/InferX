@@ -8,6 +8,8 @@
 import SwiftUI
 
 struct ModelAPISidebar: View {
+    @Environment(\.locale) private var locale
+    @Environment(\.layoutDirection) private var layoutDirection
     @Environment(ModelManagerModel.self) var modelManager
     @Environment(ConversationModel.self) private var conversationModel
     @Environment(SettingsModel.self) private var settingsModel
@@ -62,6 +64,8 @@ struct ModelAPISidebar: View {
                 }
                 .sheet(isPresented: $showAddModelSheet) {
                     ModelAddSheetView()
+                        .environment(\.locale, locale)
+                        .environment(\.layoutDirection, layoutDirection)
                 }
                 .padding(10)
                 .padding(.bottom, -10)
@@ -75,6 +79,8 @@ struct ModelAPISidebar: View {
                 }
                 .sheet(isPresented: $showAddModelAPISheet) {
                     ModelAPIAddSheetView()
+                        .environment(\.locale, locale)
+                        .environment(\.layoutDirection, layoutDirection)
                 }
                 .padding(10)
         }

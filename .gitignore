@@ -80,6 +80,7 @@ Carthage/Build/
 *.crt
 *.p12
 *.mobileprovision
+*.bak
 
 # ===============================
 # SwiftData / MLX / Generated

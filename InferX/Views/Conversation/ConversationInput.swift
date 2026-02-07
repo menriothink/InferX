@@ -59,7 +59,7 @@ struct ConversationInput: View {
     @State private var attachments: [Attachment] = []
     @State private var isDragOver = false
     @State private var showingDropAlert = false
-    @State private var dropAlertMessage = ""
+    @State private var dropAlertMessage: LocalizedStringKey = ""
     
     private let flushInterval: TimeInterval = 0.5
     
@@ -422,7 +422,7 @@ struct ConversationInput: View {
             addAttachment(url: url)
         }
         #else
-        dropAlertMessage = "附件选择功能当前仅在 macOS 可用。"
+        dropAlertMessage = "Attachments are currently only available on macOS."
         showingDropAlert = true
         #endif
     }

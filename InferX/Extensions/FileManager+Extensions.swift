@@ -8,6 +8,7 @@
 import SwiftUI
 import Foundation
 import UniformTypeIdentifiers
+import Defaults
 #if os(macOS)
 import AppKit
 typealias PlatformImage = NSImage
@@ -538,7 +539,7 @@ extension FileManager {
     #if os(macOS)
     func openDirectory(at urlToOpen: URL, in urlInSecurity: URL) throws {
         guard urlToOpen.path.hasPrefix(urlInSecurity.path) else {
-            throw SimpleError(message: "错误：尝试打开一个未在授权范围内的目录: \(urlToOpen.path)")
+            throw SimpleError(message: "Error: Attempted to open a directory outside the authorized scope: \(urlToOpen.path)")
         }
 
         guard let urlInSecurity = FileManager.default.securityAccessFile(url: urlInSecurity) else {
@@ -562,7 +563,13 @@ extension FileManager {
         openPanel.canChooseFiles = false
         openPanel.canChooseDirectories = true
         openPanel.allowsMultipleSelection = false
-        openPanel.prompt = "选择"
+        openPanel.prompt = String(
+            localized: "Select",
+            bundle: .main,
+            locale: Defaults[.language] == .system
+                ? .autoupdatingCurrent
+                : .init(identifier: Defaults[.language].rawValue)
+        )
         
         if let startingDirectory = selectedModelDir {
             openPanel.directoryURL = startingDirectory

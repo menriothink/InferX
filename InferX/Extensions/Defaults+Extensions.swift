@@ -18,7 +18,7 @@ extension Defaults.Keys {
     static let ignorHost = Key<String>("ignorHost", default: "localhost, 127.0.0.1")
     static let defaultModel = Key<String>("defaultModel", default: "")
     static let defaultModelProvider = Key<String>("defaultModelProvider", default: "")
-    static let language = Key<Language>("language", default: .english)
+    static let language = Key<Language>("language", default: .system)
     static let backgroundContentLightRadius = Key<CGFloat>("backgroundContentLightRadius", default: 0.5)
     static let backgroundContentDarkRadius = Key<CGFloat>("backgroundContentDarkRadius", default: 0.5)
     static let backgroundColorWhite = Key<CGFloat>("backgroundColorWhite", default: 0.5)

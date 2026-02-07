@@ -9,6 +9,8 @@ import SwiftUI
 
 struct ConverSationHeaderView: View {
     @Environment(\.colorScheme) private var colorScheme
+    @Environment(\.locale) private var locale
+    @Environment(\.layoutDirection) private var layoutDirection
     @Environment(ModelManagerModel.self) var modelManager
     @Environment(SettingsModel.self) private var settingsModel
     @Environment(ConversationModel.self) private var conversationModel
@@ -155,6 +157,8 @@ struct ConverSationHeaderView: View {
         .padding(.vertical, 6)
         .sheet(isPresented: $showSettings) {
             SettingsView()
+                .environment(\.locale, locale)
+                .environment(\.layoutDirection, layoutDirection)
         }
         #else
         .padding(.top, 10)

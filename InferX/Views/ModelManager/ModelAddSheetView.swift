@@ -10,6 +10,8 @@ import SwiftData
 
 struct ModelAddSheetView: View {
     @Environment(\.dismiss) private var dismiss
+    @Environment(\.locale) private var locale
+    @Environment(\.layoutDirection) private var layoutDirection
     @Environment(SettingsModel.self) private var settingsModel
     @Environment(ModelManagerModel.self) private var modelManager
 
@@ -37,6 +39,8 @@ struct ModelAddSheetView: View {
                     selectedAPIName = api.name
                 }
             }
+            .environment(\.locale, locale)
+            .environment(\.layoutDirection, layoutDirection)
         }
         .onAppear {
             if let inputApiName = self.inputApiName {
