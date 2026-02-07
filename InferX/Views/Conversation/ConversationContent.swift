@@ -57,9 +57,18 @@ struct ConversationContent: View {
     @State private var loadedMessages: [MessageData] = []
 
     var body: some View {
-        ZStack {
-            ScrollViewReader { proxy in
-                ScrollView {
+        GeometryReader { geo in
+            let sidebarWidth: CGFloat = {
+                #if os(iOS)
+                min(380, max(280, geo.size.width * 0.82))
+                #else
+                0
+                #endif
+            }()
+            
+            ZStack {
+                ScrollViewReader { proxy in
+                    ScrollView {
                     if let bottomMessage = detailModel.bottomMessage,
                        let lastLoadedMessage = loadedMessages.last {
                         ForEach(loadedMessages, id: \.id) { messageData in
@@ -149,36 +158,20 @@ struct ConversationContent: View {
                     searchKey = SearchKey(c: conversationModel.searchText, d: detailModel.searchText)
                 }
             }
-            #if os(iOS)
-            .gesture(
-                settingsModel.sidebarState == .none ?
-                DragGesture(minimumDistance: 40, coordinateSpace: .local)
-                    .onEnded { value in
-                        let horizontalAmount = value.translation.width
-                        let verticalAmount = abs(value.translation.height)
-                        
-                        // Only trigger if horizontal movement is dominant
-                        guard abs(horizontalAmount) > verticalAmount else { return }
-                        
-                        if horizontalAmount > 60 {
-                            // Swipe right → open left sidebar
-                            withAnimation(.easeInOut(duration: 0.3)) {
-                                settingsModel.sidebarState = .left
-                            }
-                        } else if horizontalAmount < -60 {
-                            // Swipe left → open right sidebar
-                            withAnimation(.easeInOut(duration: 0.3)) {
-                                settingsModel.sidebarState = .right
-                            }
-                        }
-                    }
-                : nil
-            )
-            #endif
+                
+                #if os(iOS)
+                // Edge swipe zones (only at screen edges) to open sidebars reliably
+                // without interfering with vertical scrolling.
+                if settingsModel.sidebarState == .none {
+                    edgeSwipeZones
+                        .zIndex(0.5)
+                }
+                #endif
 
             if settingsModel.sidebarState != .none {
                 Color.black.opacity(0.3)
-                    .ignoresSafeArea()
+                    .frame(maxWidth: .infinity, maxHeight: .infinity)
+                    .contentShape(Rectangle())
                     .onTapGesture {
                         withAnimation(.easeInOut(duration: 0.3)) {
                             settingsModel.sidebarState = .none
@@ -204,7 +197,15 @@ struct ConversationContent: View {
 
             if settingsModel.sidebarState == .left {
                 ConversationSidebar()
+                    #if os(iOS)
+                    .frame(width: sidebarWidth, height: geo.size.height, alignment: .top)
+                    .clipShape(RoundedRectangle(cornerRadius: 18, style: .continuous))
+                    .shadow(color: .black.opacity(0.18), radius: 18, x: 0, y: 6)
+                    .padding(.leading, 8)
+                    .padding(.vertical, 8)
+                    #else
                     .frame(maxWidth: .infinity, alignment: .leading)
+                    #endif
                     .transition(.move(edge: .leading))
                     #if os(iOS)
                     .gesture(
@@ -223,7 +224,18 @@ struct ConversationContent: View {
 
             if settingsModel.sidebarState == .right {
                 ConversationRightSidebar()
+                    #if os(iOS)
+                    .frame(width: sidebarWidth, height: geo.size.height, alignment: .top)
+                    .background {
+                        EffectView(.systemMaterial, emphasized: true)
+                    }
+                    .clipShape(RoundedRectangle(cornerRadius: 18, style: .continuous))
+                    .shadow(color: .black.opacity(0.18), radius: 18, x: 0, y: 6)
+                    .padding(.trailing, 8)
+                    .padding(.vertical, 8)
+                    #else
                     .frame(maxWidth: .infinity, alignment: .trailing)
+                    #endif
                     .transition(.move(edge: .trailing))
                     #if os(iOS)
                     .gesture(
@@ -240,6 +252,7 @@ struct ConversationContent: View {
                     .zIndex(2)
             }
         }
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
         .background(colorScheme == .dark ?
                     Color.black.opacity(backgroundColorBlack) : Color.white.opacity(backgroundColorWhite))
         .overlay(alignment: .top) {
@@ -255,6 +268,55 @@ struct ConversationContent: View {
             }
         }
     }
+    }
+
+    #if os(iOS)
+    private var edgeSwipeZones: some View {
+        let edgeWidth: CGFloat = 24
+        
+        return HStack(spacing: 0) {
+            // Left edge: swipe right to open left sidebar
+            Color.clear
+                .frame(width: edgeWidth)
+                .contentShape(Rectangle())
+                .gesture(
+                    DragGesture(minimumDistance: 25, coordinateSpace: .local)
+                        .onEnded { value in
+                            let horizontal = value.translation.width
+                            let vertical = abs(value.translation.height)
+                            guard abs(horizontal) > vertical else { return }
+                            guard horizontal > 60 else { return }
+                            
+                            withAnimation(.easeInOut(duration: 0.3)) {
+                                settingsModel.sidebarState = .left
+                            }
+                        }
+                )
+            
+            Spacer(minLength: 0)
+            
+            // Right edge: swipe left to open right sidebar
+            Color.clear
+                .frame(width: edgeWidth)
+                .contentShape(Rectangle())
+                .gesture(
+                    DragGesture(minimumDistance: 25, coordinateSpace: .local)
+                        .onEnded { value in
+                            let horizontal = value.translation.width
+                            let vertical = abs(value.translation.height)
+                            guard abs(horizontal) > vertical else { return }
+                            guard horizontal < -60 else { return }
+                            
+                            withAnimation(.easeInOut(duration: 0.3)) {
+                                settingsModel.sidebarState = .right
+                            }
+                        }
+                )
+        }
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
+        .allowsHitTesting(true)
+    }
+    #endif
 
     #if os(iOS)
     private func dismissKeyboard() {

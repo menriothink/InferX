@@ -31,6 +31,20 @@ struct ModelAPIManagerView: View {
                     ModelAPIDefaultView()
                         .navigationTitle("Settings")
                         .navigationBarTitleDisplayMode(.large)
+                        // iOS: Edge-swipe right to exit (back to conversation)
+                        .simultaneousGesture(
+                            DragGesture(minimumDistance: 25, coordinateSpace: .local)
+                                .onEnded { value in
+                                    let horizontal = value.translation.width
+                                    let vertical = abs(value.translation.height)
+                                    guard abs(horizontal) > vertical else { return }
+                                    // Only trigger from the left edge to avoid conflicts with list scrolling.
+                                    guard value.startLocation.x < 24, horizontal > 80 else { return }
+                                    withAnimation(.easeInOut(duration: 0.3)) {
+                                        settingsModel.selectedItem = .conversation
+                                    }
+                                }
+                        )
                 } else {
                     List {
                         Section("Model API") {
@@ -83,6 +97,19 @@ struct ModelAPIManagerView: View {
                     .listStyle(.insetGrouped)
                     .navigationTitle("Settings")
                     .navigationBarTitleDisplayMode(.large)
+                    // iOS: Edge-swipe right to exit (back to conversation)
+                    .simultaneousGesture(
+                        DragGesture(minimumDistance: 25, coordinateSpace: .local)
+                            .onEnded { value in
+                                let horizontal = value.translation.width
+                                let vertical = abs(value.translation.height)
+                                guard abs(horizontal) > vertical else { return }
+                                guard value.startLocation.x < 24, horizontal > 80 else { return }
+                                withAnimation(.easeInOut(duration: 0.3)) {
+                                    settingsModel.selectedItem = .conversation
+                                }
+                            }
+                    )
                     .toolbar {
                         ToolbarItem(placement: .navigationBarLeading) {
                             Button(action: {
@@ -109,19 +136,6 @@ struct ModelAPIManagerView: View {
                     .toolbarBackground(Color(.systemBackground), for: .navigationBar)
                 }
             }
-            #if os(iOS)
-            .gesture(
-                DragGesture(minimumDistance: 50)
-                    .onEnded { value in
-                        // Swipe right to go back to conversation
-                        if value.translation.width > 80 && abs(value.translation.height) < abs(value.translation.width) {
-                            withAnimation(.easeInOut(duration: 0.3)) {
-                                settingsModel.selectedItem = .conversation
-                            }
-                        }
-                    }
-            )
-            #endif
             .sheet(isPresented: $showingSettings) {
                 SettingsView()
                     .environment(settingsModel)

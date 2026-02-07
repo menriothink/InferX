@@ -9,6 +9,9 @@ import SwiftUI
 
 struct ConversationRightSidebar: View {
     @Environment(ConversationDetailModel.self) private var detailModel
+    #if os(iOS)
+    @Environment(SettingsModel.self) private var settingsModel
+    #endif
 
     private let padding: CGFloat = 6
 
@@ -90,41 +93,89 @@ struct ConversationRightSidebar: View {
     #else
     @ViewBuilder
     private var iOSContent: some View {
-        VStack(alignment: .leading, spacing: 16) {
-            VStack(alignment: .leading, spacing: 8) {
-                Text("Conversation Title")
-                    .font(.headline)
-                    .foregroundColor(.primary)
-                TextField("Enter title", text: conversationTitleBinding)
-                    .textFieldStyle(.roundedBorder)
-            }
-            .padding()
-            .background(Color(.systemGray6))
-            .cornerRadius(8)
+        ScrollView {
+            VStack(alignment: .leading, spacing: 14) {
+                headerBar
 
-            VStack(alignment: .leading, spacing: 8) {
-                HStack {
-                    Text("System Prompt")
+                VStack(alignment: .leading, spacing: 8) {
+                    Text("Conversation Title")
                         .font(.headline)
                         .foregroundColor(.primary)
-                    Spacer()
-                    Toggle("", isOn: conversationPromptEnableBinding)
-                        .labelsHidden()
+                    TextField("Enter title", text: conversationTitleBinding)
+                        .textFieldStyle(.roundedBorder)
                 }
-                TextEditor(text: conversationPromptBinding)
-                    .frame(height: 150)
-                    .scrollContentBackground(.hidden)
-                    .background(Color(.systemGray6))
-                    .cornerRadius(8)
-                    .opacity(conversationPromptEnableBinding.wrappedValue ? 1 : 0.6)
-                    .disabled(!conversationPromptEnableBinding.wrappedValue)
+                .padding(12)
+                .background(Color(.secondarySystemBackground))
+                .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
+
+                VStack(alignment: .leading, spacing: 10) {
+                    HStack(spacing: 12) {
+                        Text("System Prompt")
+                            .font(.headline)
+                            .foregroundColor(.primary)
+                        Spacer()
+                        Toggle("", isOn: conversationPromptEnableBinding)
+                            .labelsHidden()
+                            .toggleStyle(.switch)
+                    }
+
+                    TextEditor(text: conversationPromptBinding)
+                        .frame(minHeight: 160)
+                        .scrollContentBackground(.hidden)
+                        .padding(8)
+                        .background(Color(.tertiarySystemBackground))
+                        .clipShape(RoundedRectangle(cornerRadius: 10, style: .continuous))
+                        .opacity(conversationPromptEnableBinding.wrappedValue ? 1 : 0.6)
+                        .disabled(!conversationPromptEnableBinding.wrappedValue)
+                }
+                .padding(12)
+                .background(Color(.secondarySystemBackground))
+                .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
             }
-            .padding()
-            .background(Color(.systemGray6))
-            .cornerRadius(8)
-            Spacer()
+            .padding(12)
         }
-        .padding()
+    }
+
+    private var headerBar: some View {
+        HStack(spacing: 12) {
+            Button {
+                withAnimation(.easeInOut(duration: 0.25)) {
+                    settingsModel.sidebarState = .none
+                }
+            } label: {
+                Image(systemName: "xmark.circle.fill")
+                    .font(.system(size: 18))
+                    .foregroundStyle(.secondary)
+                    .frame(width: 28, height: 28)
+            }
+            .buttonStyle(.plain)
+
+            Spacer()
+
+            Capsule()
+                .fill(Color.secondary.opacity(0.35))
+                .frame(width: 40, height: 5)
+
+            Spacer()
+
+            Color.clear
+                .frame(width: 28, height: 28)
+        }
+        .padding(.vertical, 6)
+        .contentShape(Rectangle())
+        .highPriorityGesture(
+            DragGesture(minimumDistance: 25)
+                .onEnded { value in
+                    let horizontal = value.translation.width
+                    let vertical = abs(value.translation.height)
+                    guard abs(horizontal) > vertical else { return }
+                    if horizontal > 50 {
+                        withAnimation(.easeInOut(duration: 0.25)) {
+                            settingsModel.sidebarState = .none
+                        }
+                    }
+                }
+        )
     }
     #endif
 }

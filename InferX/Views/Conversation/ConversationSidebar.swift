@@ -17,6 +17,9 @@ import UIKit
 struct ConversationSidebar: View {
     @Environment(\.colorScheme) private var colorScheme
     @Environment(ConversationModel.self) private var conversationModel
+    #if os(iOS)
+    @Environment(SettingsModel.self) private var settingsModel
+    #endif
 
     @State private var showingFiletedConversation = false
     @State private var isHovering = false
@@ -63,12 +66,62 @@ struct ConversationSidebar: View {
     
     private var mainContent: some View {
         VStack(alignment: .trailing, spacing: 0) {
+            #if os(iOS)
+            headerBar
+            #endif
             topSection
             conversationListView
             createSessionButton
+            #if os(macOS)
             Spacer()
+            #endif
         }
     }
+
+    #if os(iOS)
+    private var headerBar: some View {
+        HStack(spacing: 12) {
+            Color.clear
+                .frame(width: 28, height: 28)
+
+            Spacer()
+
+            Capsule()
+                .fill(Color.secondary.opacity(0.35))
+                .frame(width: 40, height: 5)
+
+            Spacer()
+
+            Button {
+                withAnimation(.easeInOut(duration: 0.25)) {
+                    settingsModel.sidebarState = .none
+                }
+            } label: {
+                Image(systemName: "xmark.circle.fill")
+                    .font(.system(size: 18))
+                    .foregroundStyle(.secondary)
+                    .frame(width: 28, height: 28)
+            }
+            .buttonStyle(.plain)
+        }
+        .padding(.horizontal, 8)
+        .padding(.bottom, 6)
+        .contentShape(Rectangle())
+        .highPriorityGesture(
+            DragGesture(minimumDistance: 25)
+                .onEnded { value in
+                    let horizontal = value.translation.width
+                    let vertical = abs(value.translation.height)
+                    guard abs(horizontal) > vertical else { return }
+                    if horizontal < -50 {
+                        withAnimation(.easeInOut(duration: 0.25)) {
+                            settingsModel.sidebarState = .none
+                        }
+                    }
+                }
+        )
+    }
+    #endif
     
     private var topSection: some View {
         VStack(alignment: .leading, spacing: 6) {
@@ -244,7 +297,15 @@ struct ConversationSidebar: View {
     private func searchToggle(for model: ConversationModel) -> some View {
         @Bindable var conversationModel = model
         
-        return Toggle(isOn: $conversationModel.includeMessageContent) {
+        let includeMessageBinding = Binding(
+            get: { conversationModel.includeMessageContent },
+            set: { newValue in
+                conversationModel.includeMessageContent = newValue
+                filteredConversations(conversationModel.searchText)
+            }
+        )
+        
+        return Toggle(isOn: includeMessageBinding) {
             Text("Global")
                 .font(.caption2)
         }
@@ -255,9 +316,6 @@ struct ConversationSidebar: View {
         .toggleStyle(.switch)
 #endif
         .help("Include message content when searching")
-        .onChange(of: conversationModel.includeMessageContent) { _ in
-            filteredConversations(conversationModel.searchText)
-        }
     }
     
     private func filteredConversations(_ keyword: String) {

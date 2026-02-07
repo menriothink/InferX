@@ -7,6 +7,9 @@
 
 import SwiftUI
 import SwiftData
+#if os(iOS)
+import UIKit
+#endif
 
 struct ModelDetailView: View {
     @Environment(ModelManagerModel.self) var modelManager
@@ -52,24 +55,33 @@ struct ModelDetailView: View {
                 }
             }
             
-            let modelMeta = modelManager
-                .remoteModels[model.apiName]?
-                .filter({ $0.name == model.name })
-                .first?.modelMeta
+            let modelMeta = modelManager.getModelMeta(for: model)
             
-            Section(header: Text("Model Settings").font(.headline)) {
-                ModelParameterView(
-                    model: model,
-                    modelMeta: modelMeta
-                )
-                .id(model.id)
-                .disabled(modelMeta == nil)
-            }
+            ModelParameterView(
+                model: model,
+                modelMeta: modelMeta
+            )
+            .id(model.id)
         }
         .formStyle(.grouped)
         .scrollContentBackground(.hidden)
         .background(Color.clear)
         .navigationTitle(model.name)
+        #if os(iOS)
+        .scrollDismissesKeyboard(.interactively)
+        // iOS: Tap outside inputs to dismiss keyboard.
+        .onTapGesture {
+            dismissKeyboard()
+        }
+        .toolbar {
+            ToolbarItemGroup(placement: .keyboard) {
+                Spacer()
+                Button("Done") {
+                    dismissKeyboard()
+                }
+            }
+        }
+        #endif
         #if os(macOS)
         .overlay(alignment: .topLeading) {
             Button(action: {
@@ -87,5 +99,16 @@ struct ModelDetailView: View {
         #endif
         .transition(.move(edge: .trailing))
     }
+    
+    #if os(iOS)
+    private func dismissKeyboard() {
+        UIApplication.shared.sendAction(
+            #selector(UIResponder.resignFirstResponder),
+            to: nil,
+            from: nil,
+            for: nil
+        )
+    }
+    #endif
 }
 
