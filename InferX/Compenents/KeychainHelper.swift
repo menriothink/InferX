@@ -27,7 +27,6 @@ struct KeychainHelper {
             print("[KeychainHelper] Failed to save key '\(key)', status: \(addStatus)")
             return false
         }
-        print("[KeychainHelper] Saved key '\(key)' successfully")
         return true
     }
 
@@ -49,7 +48,6 @@ struct KeychainHelper {
             return nil
         }
 
-        print("[KeychainHelper] Loaded key '\(key)' successfully")
         return value
     }
     
