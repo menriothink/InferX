@@ -219,7 +219,11 @@ struct MessageWithMarkdown: View {
                                 parser.process(newContent: processedContent.content)
                             }
                         } else {
-                            markDownContent(processedContent.content)
+                            markDownContent(
+                                (lastContent == realContent && !processedContent.content.isEmpty)
+                                    ? processedContent.content
+                                    : realContent
+                            )
                         }
                     } else {
                         plainTextContent(realContent)
@@ -252,9 +256,31 @@ struct MessageWithMarkdown: View {
                     MenuView(messageData: messageData)
                 }
             }
-            .task(id: realContent, priority: .high) {
-                if !realContent.isEmpty {
-                    processedContent = ContentProcessor.shared.preprocess(markdown: realContent)
+            .task(id: realContent, priority: .background) {
+                guard !realContent.isEmpty else { return }
+
+                #if os(macOS)
+                // Avoid heavy preprocessing while the user is actively scrolling.
+                if !(isBottomMessage && detailModel.inferring) {
+                    // Wait until scrolling is idle for a short debounce window.
+                    while true {
+                        while detailModel.isScrolling {
+                            if Task.isCancelled { return }
+                            try? await Task.sleep(nanoseconds: 80_000_000)
+                        }
+                        if Task.isCancelled { return }
+                        try? await Task.sleep(nanoseconds: 200_000_000)
+                        if !detailModel.isScrolling { break }
+                    }
+                }
+                #endif
+
+                let newProcessedContent = ContentProcessor.shared.preprocess(markdown: realContent)
+                var transaction = Transaction(animation: nil)
+                transaction.disablesAnimations = true
+                withTransaction(transaction) {
+                    processedContent = newProcessedContent
+                    lastContent = realContent
                 }
             }
         }

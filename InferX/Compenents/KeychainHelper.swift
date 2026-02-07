@@ -20,7 +20,7 @@ struct KeychainHelper {
             kSecAttrAccessible as String : kSecAttrAccessibleWhenUnlocked
         ]
 
-        let deleteStatus = SecItemDelete(query as CFDictionary)
+        _ = SecItemDelete(query as CFDictionary)
         let addStatus = SecItemAdd(query as CFDictionary, nil)
         
         if addStatus != errSecSuccess {

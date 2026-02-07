@@ -124,6 +124,7 @@ struct UltramanTextEditor: NSViewRepresentable {
     class Coordinator: NSObject, NSTextViewDelegate {
         var parent: UltramanTextEditor
         var placeholderView: NSTextView?
+        private var isProgrammaticTextUpdate = false
 
         init(_ parent: UltramanTextEditor) {
             self.parent = parent
@@ -131,7 +132,9 @@ struct UltramanTextEditor: NSViewRepresentable {
 
         func updateTextView(to newText: String, in textView: NSTextView) {
             if textView.string != newText {
+                isProgrammaticTextUpdate = true
                 textView.string = newText
+                isProgrammaticTextUpdate = false
             }
         }
 
@@ -164,7 +167,12 @@ struct UltramanTextEditor: NSViewRepresentable {
             guard let textView = notification.object as? NSTextView else {
                 return
             }
-            parent.text = textView.string
+            // Prevent "Modifying state during view update" warning:
+            // Setting `textView.string` in `updateNSView` can synchronously trigger `textDidChange`.
+            // In that case we should not write back to the SwiftUI binding.
+            if !isProgrammaticTextUpdate {
+                parent.text = textView.string
+            }
             updatePlaceholderVisibility(for: textView)
         }
 

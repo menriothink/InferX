@@ -28,6 +28,7 @@ final class ConversationDetailModel {
     var conversation: Conversation?
 
     var currentVisableHeight: CGFloat?
+    var isScrolling: Bool = false
 
     var searchText: String = ""
     var cacheContent = ""
