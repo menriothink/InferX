@@ -11,6 +11,9 @@ import SwiftUIIntrospect
 import AlertToast
 import SwiftUIX
 import Defaults
+#if os(macOS)
+import AppKit
+#endif
 #if os(iOS)
 import UIKit
 #endif
@@ -37,6 +40,13 @@ struct ConversationContent: View {
     @Environment(ConversationModel.self) private var conversationModel
     @Environment(ConversationDetailModel.self) private var detailModel
 
+    #if os(macOS)
+    private final class WeakNSScrollViewHolder {
+        weak var scrollView: NSScrollView?
+    }
+    @State private var macOSScrollViewHolder = WeakNSScrollViewHolder()
+    #endif
+
     @Default(.backgroundColorWhite) var backgroundColorWhite
     @Default(.backgroundColorBlack) var backgroundColorBlack
 
@@ -56,36 +66,39 @@ struct ConversationContent: View {
     @State private var scrollPosition = ScrollPosition()
     @State private var loadedMessages: [MessageData] = []
 
-    var body: some View {
-        GeometryReader { geo in
-            let sidebarWidth: CGFloat = {
-                #if os(iOS)
-                min(380, max(280, geo.size.width * 0.82))
-                #else
-                0
-                #endif
-            }()
-            
-            ZStack {
-                ScrollViewReader { proxy in
-                    ScrollView {
-                    if let bottomMessage = detailModel.bottomMessage,
-                       let lastLoadedMessage = loadedMessages.last {
-                        ForEach(loadedMessages, id: \.id) { messageData in
-                            if messageData.id != bottomMessage.id {
-                                ConversationMessage(messageData: messageData, isBottomMessage: false)
-                                    .id(messageData.id)
-                                    .padding(.bottom, 50)
-                            }
-                        }
-
-                        if bottomMessage.id == lastLoadedMessage.id {
-                            ConversationMessage(messageData: bottomMessage, isBottomMessage: true)
-                                .id(bottomMessage.id)
-                        }
-                    }
+    @ViewBuilder
+    private var messagesStackContent: some View {
+        if let bottomMessage = detailModel.bottomMessage,
+           let lastLoadedMessage = loadedMessages.last {
+            ForEach(loadedMessages, id: \.id) { messageData in
+                if messageData.id != bottomMessage.id {
+                    ConversationMessage(messageData: messageData, isBottomMessage: false)
+                        .id(messageData.id)
+                        .padding(.bottom, 50)
                 }
+            }
+
+            if bottomMessage.id == lastLoadedMessage.id {
+                ConversationMessage(messageData: bottomMessage, isBottomMessage: true)
+                    .id(bottomMessage.id)
+            }
+        }
+    }
+
+    @ViewBuilder
+    private var messageScrollView: some View {
+        ScrollViewReader { proxy in
+            ScrollView {
+                LazyVStack(alignment: .leading, spacing: 0) {
+                    messagesStackContent
+                }
+            }
                 .scrollPosition($scrollPosition)
+                #if os(macOS)
+                .introspect(.scrollView, on: .macOS(.v14, .v15)) { scrollView in
+                    macOSScrollViewHolder.scrollView = scrollView
+                }
+                #endif
                 #if os(iOS)
                 // Tap outside the input to dismiss keyboard (iOS doesn't do this by default).
                 .scrollDismissesKeyboard(.interactively)
@@ -157,7 +170,21 @@ struct ConversationContent: View {
                 .task(id: SearchKey(c: conversationModel.searchText, d: detailModel.searchText)) {
                     searchKey = SearchKey(c: conversationModel.searchText, d: detailModel.searchText)
                 }
-            }
+        }
+    }
+
+    var body: some View {
+        GeometryReader { geo in
+            let sidebarWidth: CGFloat = {
+                #if os(iOS)
+                min(380, max(280, geo.size.width * 0.82))
+                #else
+                0
+                #endif
+            }()
+            
+            ZStack {
+                messageScrollView
                 
                 #if os(iOS)
                 // Edge swipe zones (only at screen edges) to open sidebars reliably
@@ -455,16 +482,22 @@ struct ConversationContent: View {
         guard !isTopLoading, !isBottomLoading else { return }
 
         var anchorMessage: MessageData?
+        var loadDirection: Direction?
+        var scrollAnchor: UnitPoint = .top
 
         if firstMessageAppear, !isTopLoading {
             isTopLoading = true
             anchorMessage = loadedMessages.first
+            loadDirection = .up
+            scrollAnchor = .top
         } else if lastMessageAppear, !isBottomLoading {
             isBottomLoading = true
             anchorMessage = loadedMessages.last
+            loadDirection = .down
+            scrollAnchor = .bottom
         }
 
-        Task {
+        Task { @MainActor in
             defer {
                 isTopLoading = false
                 isBottomLoading = false
@@ -472,29 +505,71 @@ struct ConversationContent: View {
                 lastMessageAppear = false
             }
 
-            if let anchorMessage {
+            if let anchorMessage, let loadDirection {
                 if let loadedMessages = await loadMessages(
                     from: FetchFrom.starting(anchorMessage.createdAt),
-                    direction: isTopLoading ? Direction.up : Direction.down,
+                    direction: loadDirection,
                     numbers: detailModel.messagesLoadSize
                 ) {
                     var transaction = Transaction(animation: nil)
                     transaction.disablesAnimations = true
 
+                    #if os(macOS)
+                    // --- macOS: Snapshot overlay to hide the jump ---
+                    let scrollView = macOSScrollViewHolder.scrollView
+                    var snapshotLayer: CALayer?
+
+                    if loadDirection == .up, let scrollView,
+                       let bitmapRep = scrollView.bitmapImageRepForCachingDisplay(in: scrollView.bounds) {
+                        scrollView.cacheDisplay(in: scrollView.bounds, to: bitmapRep)
+                        let layer = CALayer()
+                        layer.contents = bitmapRep.cgImage
+                        layer.frame = scrollView.bounds
+                        layer.zPosition = 9999
+                        scrollView.wantsLayer = true
+                        scrollView.layer?.addSublayer(layer)
+                        snapshotLayer = layer
+                    }
+                    #endif
+
                     withTransaction(transaction) {
                         self.loadedMessages = loadedMessages
                     }
 
-                    try? await Task.sleep(nanoseconds: UInt64(100_000_000))
-                    for _ in 0 ... 10 {
-                        withTransaction(transaction) {
-                            scrollProxy?.scrollTo(
-                                anchorMessage.id,
-                                anchor: isTopLoading ? .top : .bottom
-                            )
-                        }
-                        try? await Task.sleep(nanoseconds: UInt64(10_000_000))
+                    // Give SwiftUI layout passes to settle.
+                    await Task.yield()
+                    try? await Task.sleep(nanoseconds: 50_000_000)
+
+                    withTransaction(transaction) {
+                        scrollProxy?.scrollTo(anchorMessage.id, anchor: scrollAnchor)
                     }
+
+                    // Extra scrollTo calls to ensure position is stable.
+                    try? await Task.sleep(nanoseconds: 50_000_000)
+                    withTransaction(transaction) {
+                        scrollProxy?.scrollTo(anchorMessage.id, anchor: scrollAnchor)
+                    }
+
+                    try? await Task.sleep(nanoseconds: 100_000_000)
+                    withTransaction(transaction) {
+                        scrollProxy?.scrollTo(anchorMessage.id, anchor: scrollAnchor)
+                    }
+
+                    // Wait longer for all layout to fully stabilize (WebView/KaTeX/Markdown).
+                    try? await Task.sleep(nanoseconds: 300_000_000)
+                    withTransaction(transaction) {
+                        scrollProxy?.scrollTo(anchorMessage.id, anchor: scrollAnchor)
+                    }
+
+                    #if os(macOS)
+                    // Remove snapshot after everything is stable (~500ms total).
+                    if let snapshotLayer {
+                        CATransaction.begin()
+                        CATransaction.setDisableActions(true)
+                        snapshotLayer.removeFromSuperlayer()
+                        CATransaction.commit()
+                    }
+                    #endif
                 }
             }
         }

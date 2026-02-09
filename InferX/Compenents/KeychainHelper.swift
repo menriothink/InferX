@@ -20,14 +20,13 @@ struct KeychainHelper {
             kSecAttrAccessible as String : kSecAttrAccessibleWhenUnlocked
         ]
 
-        let deleteStatus = SecItemDelete(query as CFDictionary)
+        _ = SecItemDelete(query as CFDictionary)
         let addStatus = SecItemAdd(query as CFDictionary, nil)
         
         if addStatus != errSecSuccess {
             print("[KeychainHelper] Failed to save key '\(key)', status: \(addStatus)")
             return false
         }
-        print("[KeychainHelper] Saved key '\(key)' successfully")
         return true
     }
 
@@ -49,7 +48,6 @@ struct KeychainHelper {
             return nil
         }
 
-        print("[KeychainHelper] Loaded key '\(key)' successfully")
         return value
     }
     
